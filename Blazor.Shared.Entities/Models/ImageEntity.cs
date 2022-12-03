@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Blazor.Shared.Entities.Models;
 
 [Table("Images")]
-public class Image
+public sealed class ImageEntity
 {
     [Column("pk_image"), Key]
     public int Id { get; set; }
@@ -20,5 +20,5 @@ public class Image
     [Column("fk_carousel_item"), ForeignKey(nameof(CarouselItem))]
     public int CarouselItemId { get; set; }
 
-    public CarouselItem CarouselItem { get; set; }
+    public CarouselItemEntity CarouselItem { get; set; }
 }

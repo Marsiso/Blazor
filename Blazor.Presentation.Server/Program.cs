@@ -1,4 +1,5 @@
 using Blazor.Presentation.Server.Extensions;
+using Blazor.Shared.Entities.Mappings;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 
@@ -24,7 +25,9 @@ builder.Services
     .AddSwaggerGen()
     .ConfigureSqlContext(builder.Configuration)
     .ConfigureCors()
-    .ConfigureIISIntegration();
+    .ConfigureIISIntegration()
+    .ConfigureRepositoryManager()
+    .AddAutoMapper(typeof(CarouselItemMappingProfile));
 
 logger.Information("Services have been registered");
 
@@ -42,6 +45,9 @@ else
 {
     app.UseHsts();
 }
+
+app
+    .ConfigureExceptionHandler(logger);
 
 app
     .UseHttpsRedirection()
