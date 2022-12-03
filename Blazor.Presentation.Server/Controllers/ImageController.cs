@@ -24,17 +24,11 @@ public class ImageController : ControllerBase
 
 
     [HttpGet(Name = "GetImageAsync")]
-    [ServiceFilter(typeof(CarouselItemExistsValidationFilter))]
+    [ServiceFilter(typeof(CarouselItemExistsValidationFilter), Order = 1)]
+    [ServiceFilter(typeof(ImageExistsValidationFilter), Order = 2)]
     public async Task<IActionResult> GetImageAsync(int carouselItemId)
     {
-        var carouselItemEntity = HttpContext.Items["carouselItemEntity"] as CarouselItemEntity;
-        var imageEntity = await _repository.Image.GetImageByCarouselItemAsync(carouselItemEntity, false);
-        if (imageEntity == null)
-        {
-            _logger.Information("Carousel item with id: {Id} doesn't have image in the database", carouselItemId);
-            return NotFound();
-        }
-
+        var imageEntity = HttpContext.Items["imageEntity"] as ImageEntity;
         var imageDto = _mapper.Map<ImageDto>(imageEntity);
         return Ok(imageDto);
     }

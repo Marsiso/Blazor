@@ -29,7 +29,8 @@ builder.Services
     .ConfigureIISIntegration()
     .ConfigureRepositoryManager()
     .AddAutoMapper(typeof(CarouselItemMappingProfile), typeof(ImageMappingProfile))
-    .AddScoped<CarouselItemExistsValidationFilter>();
+    .AddScoped<CarouselItemExistsValidationFilter>()
+    .AddScoped<ImageExistsValidationFilter>();
 
 logger.Information("Services have been registered");
 
