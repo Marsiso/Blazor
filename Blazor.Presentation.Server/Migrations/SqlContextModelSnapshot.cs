@@ -21,7 +21,7 @@ namespace Blazor.Presentation.Server.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("Blazor.Shared.Entities.Models.CarouselItem", b =>
+            modelBuilder.Entity("Blazor.Shared.Entities.Models.CarouselItemEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -41,11 +41,6 @@ namespace Blazor.Presentation.Server.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("image_caption");
 
-                    b.Property<string>("Src")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("image_src");
-
                     b.HasKey("Id");
 
                     b.ToTable("CarouselItems");
@@ -55,33 +50,29 @@ namespace Blazor.Presentation.Server.Migrations
                         {
                             Id = 1,
                             Alt = "First image",
-                            Caption = "First image",
-                            Src = "images/carousel/image-01.jpg"
+                            Caption = "First image"
                         },
                         new
                         {
                             Id = 2,
                             Alt = "Second image",
-                            Caption = "Second image",
-                            Src = "images/carousel/image-02.jpg"
+                            Caption = "Second image"
                         },
                         new
                         {
                             Id = 3,
                             Alt = "Third image",
-                            Caption = "Third image",
-                            Src = "images/carousel/image-03.jpg"
+                            Caption = "Third image"
                         },
                         new
                         {
                             Id = 4,
                             Alt = "Fourth image",
-                            Caption = "Fourth image",
-                            Src = "images/carousel/image-04.jpg"
+                            Caption = "Fourth image"
                         });
                 });
 
-            modelBuilder.Entity("Blazor.Shared.Entities.Models.Image", b =>
+            modelBuilder.Entity("Blazor.Shared.Entities.Models.ImageEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -142,18 +133,18 @@ namespace Blazor.Presentation.Server.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Blazor.Shared.Entities.Models.Image", b =>
+            modelBuilder.Entity("Blazor.Shared.Entities.Models.ImageEntity", b =>
                 {
-                    b.HasOne("Blazor.Shared.Entities.Models.CarouselItem", "CarouselItem")
+                    b.HasOne("Blazor.Shared.Entities.Models.CarouselItemEntity", "CarouselItem")
                         .WithOne("Image")
-                        .HasForeignKey("Blazor.Shared.Entities.Models.Image", "CarouselItemId")
+                        .HasForeignKey("Blazor.Shared.Entities.Models.ImageEntity", "CarouselItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("CarouselItem");
                 });
 
-            modelBuilder.Entity("Blazor.Shared.Entities.Models.CarouselItem", b =>
+            modelBuilder.Entity("Blazor.Shared.Entities.Models.CarouselItemEntity", b =>
                 {
                     b.Navigation("Image");
                 });

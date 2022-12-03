@@ -17,10 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\images\carousel\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Blazor.Shared\Blazor.Shared.Implementations.csproj" />
   </ItemGroup>
 

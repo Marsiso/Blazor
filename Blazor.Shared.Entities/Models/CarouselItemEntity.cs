@@ -17,9 +17,5 @@ public sealed class CarouselItemEntity
     [MaxLength(50, ErrorMessage = "Maximum length for the image caption is 50 characters"), DataType(DataType.Text, ErrorMessage = "Image caption must be text value type")]
     public string Caption { get; set; }
 
-    [Column("image_src"), Required(ErrorMessage = "Image source is a required field")]
-    [DataType(DataType.Text, ErrorMessage = "Image alternative name must be text value type")]
-    public string Src { get; set; }
-
     public ImageEntity Image { get; set; }
 }
