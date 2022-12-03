@@ -1,4 +1,5 @@
 using Blazor.Presentation.Server.Extensions;
+using Blazor.Presentation.Server.Filters;
 using Blazor.Shared.Entities.Mappings;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
@@ -27,7 +28,8 @@ builder.Services
     .ConfigureCors()
     .ConfigureIISIntegration()
     .ConfigureRepositoryManager()
-    .AddAutoMapper(typeof(CarouselItemMappingProfile));
+    .AddAutoMapper(typeof(CarouselItemMappingProfile), typeof(ImageMappingProfile))
+    .AddScoped<CarouselItemExistsValidationFilter>();
 
 logger.Information("Services have been registered");
 

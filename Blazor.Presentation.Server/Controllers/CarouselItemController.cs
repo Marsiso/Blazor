@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Blazor.Presentation.Server.Filters;
 using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DataTransferObjects;
+using Blazor.Shared.Entities.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Blazor.Presentation.Server.Controllers;
@@ -9,11 +11,11 @@ namespace Blazor.Presentation.Server.Controllers;
 [ApiController]
 public sealed class CarouselItemController : ControllerBase
 {
-    readonly ILogger<CarouselItemController> _logger;
+    readonly Serilog.ILogger _logger;
     readonly IRepositoryManager _repository;
     readonly IMapper _mapper;
 
-    public CarouselItemController(ILogger<CarouselItemController> logger, IRepositoryManager repository, IMapper mapper)
+    public CarouselItemController(Serilog.ILogger logger, IRepositoryManager repository, IMapper mapper)
     {
         _logger = logger;
         _repository = repository;
@@ -26,5 +28,14 @@ public sealed class CarouselItemController : ControllerBase
         var carouselItemEntities = await _repository.CarouselItem.GetAllCarouselItemsAsync(false);
         var carouselItemsDtos = _mapper.Map<IEnumerable<CarouselItemDto>>(carouselItemEntities);
         return Ok(carouselItemsDtos);
+    }
+
+    [HttpGet("{carouselItemId:int}", Name = "GetCarouselItemAsync")]
+    [ServiceFilter(typeof(CarouselItemExistsValidationFilter))]
+    public async Task<IActionResult> GetCarouselItemAsync(int carouselItemId)
+    {
+        var carouselItemEntity = HttpContext.Items["carouselItemEntity"] as CarouselItemEntity;
+        var carouselItemDto = _mapper.Map<CarouselItemDto>(carouselItemEntity);
+        return Ok(carouselItemDto);
     }
 }
