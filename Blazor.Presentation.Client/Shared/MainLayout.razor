@@ -1,0 +1,66 @@
+﻿@inherits LayoutComponentBase
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.SplitButtons
+@inject NavigationManager NavigationManager
+
+<div class="control-container">
+    <SfAppBar ColorMode="AppBarColor.Dark">
+        <SfButton Content="UTB EShop" CssClass="e-inherit" IconCss="e-icons e-home" OnClick="onHomeBtnClick"></SfButton>
+        <AppBarSeparator></AppBarSeparator>
+        <SfDropDownButton CssClass="e-inherit" Content="Carousel">
+            <DropDownMenuItems>
+              <DropDownMenuItem Text="Manage"></DropDownMenuItem>
+              <DropDownMenuItem Text="Create"></DropDownMenuItem>
+            </DropDownMenuItems>
+        </SfDropDownButton>
+        <SfDropDownButton CssClass="e-inherit" Content="Products">
+            <DropDownMenuItems>
+                <DropDownMenuItem Text="Manage"></DropDownMenuItem>
+                <DropDownMenuItem Text="Create"></DropDownMenuItem>
+            </DropDownMenuItems>
+        </SfDropDownButton>
+        <AppBarSpacer></AppBarSpacer>
+        <div style="width:300px" class="ralign">
+            <span class="e-input-group e-control-wrapper e-inherit">
+                <input type="text" class="e-searchinput e-input" placeholder="Search" />
+                <span class="e-icons e-search e-input-group-icon"></span>
+            </span>
+        </div>
+        <AppBarSpacer></AppBarSpacer>
+        <AppBarSeparator></AppBarSeparator>
+        <SfButton CssClass="e-inherit" Content="Login" OnClick="onNavBtnClick"></SfButton>
+        <SfButton CssClass="e-inherit" Content="Signin" OnClick="onNavBtnClick"></SfButton>
+    </SfAppBar>
+</div>
+<br/>
+
+<div class="page">
+    <main>
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code{
+    public void onNavBtnClick()
+    {
+        NavigationManager.NavigateTo("#");
+    }
+
+    public void onHomeBtnClick()
+    {
+        NavigationManager.NavigateTo("#");
+    }
+}
+
+
+<style>
+    .control-container .e-btn.e-inherit {
+        margin: 0 3px;
+    }
+
+    .ralign {
+        margin-right: 15px;
+    }
+</style>
