@@ -26,8 +26,9 @@
             </span>
         </div>
         <AppBarSpacer></AppBarSpacer>
-        <SfButton CssClass="e-inherit" IconCss="e-icons e-user" Content="Login" OnClick="onNavBtnClick"></SfButton>
-        <SfButton CssClass="e-inherit" IconCss="e-icons e-people" Content="Signin" OnClick="onNavBtnClick"></SfButton>
+        <SfButton CssClass="e-inherit" IconCss="e-icons e-user" Content="Login" OnClick="onLoginBtnClick"></SfButton>
+        <SfButton CssClass="e-inherit" IconCss="e-icons e-people" Content="Signin" OnClick="onSigninBtnClick"></SfButton>
+        <SfButton CssClass="e-inherit" IconCss="e-icons e-user" Content="Logout" OnClick="onLoginBtnClick"></SfButton>
     </SfAppBar>
 </div>
 <br/>
@@ -41,15 +42,13 @@
 </div>
 
 @code{
-    public void onNavBtnClick()
-    {
-        NavigationManager.NavigateTo("#");
-    }
+    public void onNavBtnClick() => NavigationManager.NavigateTo("#");
 
-    public void onHomeBtnClick()
-    {
-        NavigationManager.NavigateTo("#");
-    }
+    public void onHomeBtnClick() => NavigationManager.NavigateTo("#");
+
+    public void onLoginBtnClick() => NavigationManager.NavigateTo("/User/Login");
+
+    public void onSigninBtnClick() => NavigationManager.NavigateTo("/User/Signin");
 }
 
 
