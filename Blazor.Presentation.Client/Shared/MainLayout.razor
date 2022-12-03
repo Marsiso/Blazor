@@ -3,40 +3,38 @@
 @using Syncfusion.Blazor.SplitButtons
 @inject NavigationManager NavigationManager
 
-<div class="control-container">
+<div class="appbar-control-container">
     <SfAppBar ColorMode="AppBarColor.Dark">
-        <SfButton Content="UTB EShop" CssClass="e-inherit" IconCss="e-icons e-home" OnClick="onHomeBtnClick"></SfButton>
-        <AppBarSeparator></AppBarSeparator>
-        <SfDropDownButton CssClass="e-inherit" Content="Carousel">
+        <SfButton CssClass="e-inherit" IconCss="e-icons e-home" OnClick="onHomeBtnClick"></SfButton>
+        <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Carousel">
             <DropDownMenuItems>
-              <DropDownMenuItem Text="Manage"></DropDownMenuItem>
-              <DropDownMenuItem Text="Create"></DropDownMenuItem>
+                <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings"></DropDownMenuItem>
+                <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right"></DropDownMenuItem>
             </DropDownMenuItems>
         </SfDropDownButton>
-        <SfDropDownButton CssClass="e-inherit" Content="Products">
+        <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Products">
             <DropDownMenuItems>
-                <DropDownMenuItem Text="Manage"></DropDownMenuItem>
-                <DropDownMenuItem Text="Create"></DropDownMenuItem>
+                <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings"></DropDownMenuItem>
+                <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right"></DropDownMenuItem>
             </DropDownMenuItems>
         </SfDropDownButton>
         <AppBarSpacer></AppBarSpacer>
-        <div style="width:300px" class="ralign">
+        <div style="width:400px" class="ralign">
             <span class="e-input-group e-control-wrapper e-inherit">
                 <input type="text" class="e-searchinput e-input" placeholder="Search" />
                 <span class="e-icons e-search e-input-group-icon"></span>
             </span>
         </div>
         <AppBarSpacer></AppBarSpacer>
-        <AppBarSeparator></AppBarSeparator>
-        <SfButton CssClass="e-inherit" Content="Login" OnClick="onNavBtnClick"></SfButton>
-        <SfButton CssClass="e-inherit" Content="Signin" OnClick="onNavBtnClick"></SfButton>
+        <SfButton CssClass="e-inherit" IconCss="e-icons e-user" Content="Login" OnClick="onNavBtnClick"></SfButton>
+        <SfButton CssClass="e-inherit" IconCss="e-icons e-people" Content="Signin" OnClick="onNavBtnClick"></SfButton>
     </SfAppBar>
 </div>
 <br/>
 
 <div class="page">
     <main>
-        <article class="content px-4">
+        <article class="content px-4 text-center">
             @Body
         </article>
     </main>
@@ -56,7 +54,7 @@
 
 
 <style>
-    .control-container .e-btn.e-inherit {
+    .appbar-control-container .e-btn.e-inherit {
         margin: 0 3px;
     }
 

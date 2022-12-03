@@ -15,4 +15,8 @@
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="20.3.0.59" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\sample-data\" />
+  </ItemGroup>
+
 </Project>

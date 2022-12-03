@@ -1,11 +1,65 @@
 ﻿@page "/"
 @page "/Home"
 @page "/Index"
+@using Syncfusion.Blazor.Navigations
 
 <PageTitle>Index</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Welcome!</h1>
 
-Welcome to your new app.
+Showcasing pictures taken around the world ...
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+<div class="control-container">
+    <SfCarousel>
+        <CarouselItem>
+            <figure class="img-container">
+                <img src="images/carousel/image-01.jpg" alt="Savana, Africa" style="height:100%;width:100%;" />
+                <figcaption class="img-caption">Savana, Africa</figcaption>
+            </figure>
+        </CarouselItem>
+        <CarouselItem>
+            <figure class="img-container">
+                <img src="images/carousel/image-02.jpg" alt="Skycrappers, Dubai" style="height:100%;width:100%;" />
+                <figcaption class="img-caption">Skycrappers, Dubai</figcaption>
+            </figure>
+        </CarouselItem>
+        <CarouselItem>
+            <figure class="img-container">
+                <img src="images/carousel/image-03.jpg" alt="Waterfalls, Africa" style="height:100%;width:100%;" />
+                <figcaption class="img-caption">Waterfalls, Africa</figcaption>
+            </figure>
+        </CarouselItem>
+        <CarouselItem>
+            <figure class="img-container">
+                <img src="images/carousel/image-04.jpg" alt="Lord TouchMe, Overlord" style="height:100%;width:100%;" />
+                <figcaption class="img-caption">Lord TouchMe, Overlord</figcaption>
+            </figure>
+        </CarouselItem>
+    </SfCarousel>
+</div>
+
+<SurveyPrompt Title="How do you feel about Blazor WebAssembly?" />
+
+<style>
+    .control-container {
+        background-color: #e5e5e5;
+        height: calc(80vw / 1.78 - 1px);
+        margin: 0 auto;
+        width: 80%;
+    }
+
+    .e-carousel .e-carousel-items .e-carousel-item .img-container {
+        height: 100%;
+    }
+
+    .e-carousel .e-carousel-items .e-carousel-item .img-caption {
+        bottom: 4em;
+        color: #fff;
+        font-size: 12pt;
+        height: 2em;
+        position: relative;
+        padding: 0.3em 1em;
+        text-align: center;
+        width: 100%;
+    }
+</style>
