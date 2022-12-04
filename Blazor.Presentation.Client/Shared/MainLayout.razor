@@ -3,25 +3,31 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Syncfusion.Blazor.Buttons
 @using Syncfusion.Blazor.SplitButtons
+@using Microsoft.AspNetCore.Authorization
 @inject NavigationManager NavigationManager
 @inject NavigationManager Navigation
 @inject SignOutSessionStateManager SignOutManager
+@attribute [Authorize]
 
 <div class="appbar-control-container">
     <SfAppBar ColorMode="AppBarColor.Dark">
         <SfButton CssClass="e-inherit" IconCss="e-icons e-home" OnClick="onHomeBtnClick"></SfButton>
-        <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Carousel">
-            <DropDownMenuItems>
-                <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/fetchdata"></DropDownMenuItem>
-                <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right"></DropDownMenuItem>
-            </DropDownMenuItems>
-        </SfDropDownButton>
-        <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Products">
-            <DropDownMenuItems>
-                <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings"></DropDownMenuItem>
-                <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right"></DropDownMenuItem>
-            </DropDownMenuItems>
-        </SfDropDownButton>
+        <AuthorizeView>
+            <Authorized>
+                <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Carousel">
+                    <DropDownMenuItems>
+                        <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/fetchdata"></DropDownMenuItem>
+                        <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right"></DropDownMenuItem>
+                    </DropDownMenuItems>
+                </SfDropDownButton>
+                <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Products">
+                    <DropDownMenuItems>
+                        <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings"></DropDownMenuItem>
+                        <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right"></DropDownMenuItem>
+                    </DropDownMenuItems>
+                </SfDropDownButton>
+            </Authorized>
+        </AuthorizeView>
         <AppBarSpacer></AppBarSpacer>
         @*<div style="width:400px" class="ralign">
             <span class="e-input-group e-control-wrapper e-inherit">
