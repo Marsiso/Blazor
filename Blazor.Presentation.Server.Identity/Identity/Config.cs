@@ -36,7 +36,7 @@ internal static class Config
                 new Claim(JwtClaimTypes.Name, "Tomas Adamek"),
                 new Claim("family_name", "Adamek"),
                 new Claim("address", "Zlin"),
-                new Claim("role", "admin"),
+                new Claim("role", "manager"),
                 new Claim("country", "France")
             }
         }
@@ -53,25 +53,6 @@ internal static class Config
 
     static IEnumerable<Client> GetClients() => new List<Client>
     {
-       /* new Client
-        {
-            ClientName = "Blazor WASM",
-            ClientId = "BlazorWASM",
-            AllowedGrantTypes = GrantTypes.Hybrid,
-            RedirectUris = new List<string>{ "https://localhost:9001/signin-oidc" },
-            RequirePkce = false,
-            AllowedScopes =
-            {
-                IdentityServerConstants.StandardScopes.OpenId,
-                IdentityServerConstants.StandardScopes.Profile,
-                IdentityServerConstants.StandardScopes.Address,
-                "roles",
-                "BlazorAPI",
-                "country"
-            },
-            ClientSecrets = { new Secret("BlazorWASMSecret".Sha512()) },
-            RequireConsent = true
-        },*/
         new Client
         {
         ClientName = "BlazorWasm",
@@ -92,12 +73,9 @@ internal static class Config
                 IdentityServerConstants.StandardScopes.OpenId,
                 IdentityServerConstants.StandardScopes.Profile,
                 "BlazorAPI",
-        /*        IdentityServerConstants.StandardScopes.Address,
                 "roles",
-                "BlazorAPI",
-                "country"*/
+                "country"
             }
-            //ClientSecrets = { new Secret("BlazorWASMSecret".Sha512()) },
             // RequireConsent = true
         }
     };

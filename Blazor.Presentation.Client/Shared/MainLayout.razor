@@ -1,9 +1,9 @@
 ﻿@inherits LayoutComponentBase
+@using Blazor.Presentation.Client.Identity;
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 @using Microsoft.AspNetCore.Components.Authorization
 @using Syncfusion.Blazor.Buttons
 @using Syncfusion.Blazor.SplitButtons
-@using Microsoft.AspNetCore.Authorization
 @inject NavigationManager NavigationManager
 @inject NavigationManager Navigation
 @inject SignOutSessionStateManager SignOutManager
@@ -16,18 +16,35 @@
             <Authorized>
                 <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Carousel">
                     <DropDownMenuItems>
-                        <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/fetchdata"></DropDownMenuItem>
+                        <AuthorizeView Policy="@Policies.FromCzechia" Context="CzechUserContext">
+                            <Authorized>
+                                <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/FetchData"></DropDownMenuItem>
+                            </Authorized>
+                        </AuthorizeView>
                         <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right"></DropDownMenuItem>
-                    </DropDownMenuItems>
-                </SfDropDownButton>
-                <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Products">
-                    <DropDownMenuItems>
-                        <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings"></DropDownMenuItem>
-                        <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right"></DropDownMenuItem>
+                        <DropDownMenuItem Text="Claims" IconCss="e-icons e-insert-right" Url="/Claims"></DropDownMenuItem>
                     </DropDownMenuItems>
                 </SfDropDownButton>
             </Authorized>
         </AuthorizeView>
+
+
+        <AuthorizeView>
+            <Authorized>
+                <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Products">
+                    <DropDownMenuItems>
+                        <AuthorizeView Policy="@Policies.FromCzechia" Roles="admin" Context="CzechAdminUserContext">
+                            <Authorized>
+                                <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/FetchData"></DropDownMenuItem>
+                            </Authorized>
+                        </AuthorizeView>
+                        <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right"></DropDownMenuItem>
+                        <DropDownMenuItem Text="Claims" IconCss="e-icons e-insert-right" Url="/Claims"></DropDownMenuItem>
+                    </DropDownMenuItems>
+                </SfDropDownButton>
+            </Authorized>
+        </AuthorizeView>
+
         <AppBarSpacer></AppBarSpacer>
         @*<div style="width:400px" class="ralign">
             <span class="e-input-group e-control-wrapper e-inherit">

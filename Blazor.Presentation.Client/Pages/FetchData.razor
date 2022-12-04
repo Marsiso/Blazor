@@ -1,7 +1,9 @@
-﻿@page "/fetchdata"
+﻿@page "/FetchData"
+@using Blazor.Presentation.Client.Identity;
 @using Blazor.Presentation.Client.Services;
 @using Blazor.Shared.Entities.DataTransferObjects;
 @inject CarouselItemService CarouselItemService
+@attribute [Authorize(Policy = Policies.FromCzechia)]
 
 <PageTitle>Carousel items</PageTitle>
 

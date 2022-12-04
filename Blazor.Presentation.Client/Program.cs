@@ -1,4 +1,5 @@
 using Blazor.Presentation.Client;
+using Blazor.Presentation.Client.Identity;
 using Blazor.Presentation.Client.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
@@ -22,12 +23,18 @@ builder.Services.AddHttpClient<CarouselItemService>(client => client.BaseAddress
         return handler;
     });
 
+builder.Services.AddAuthorizationCore(options =>
+{
+    options.AddPolicy(Policies.FromCzechia, Policies.FromCzechiaPolicy());
+});
+
 builder.Services.AddSingleton<CarouselItemService>();
 builder.Services.AddSyncfusionBlazor();
 
 builder.Services.AddOidcAuthentication(options =>
 {
     builder.Configuration.Bind("oidc", options.ProviderOptions);
+    options.UserOptions.RoleClaim = "role";
 });
 
 await builder.Build().RunAsync();

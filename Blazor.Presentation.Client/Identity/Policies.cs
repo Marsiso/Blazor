@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 
-namespace Blazor.Presentation.Server.Extensions;
+namespace Blazor.Presentation.Client.Identity;
 
-public static class IdentityExtensions
+public static class Policies
 {
     public const string FromCzechia = "FromCzechia";
     public static AuthorizationPolicy FromCzechiaPolicy() => new AuthorizationPolicyBuilder()

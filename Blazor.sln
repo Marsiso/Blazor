@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Presentation.Client", "Blazor.Presentation.Client\Blazor.Presentation.Client.csproj", "{897CFD85-67AC-40BA-82D3-DFA92CAD4516}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.Presentation.Client", "Blazor.Presentation.Client\Blazor.Presentation.Client.csproj", "{897CFD85-67AC-40BA-82D3-DFA92CAD4516}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Presentation.Server", "Blazor.Presentation.Server\Blazor.Presentation.Server.csproj", "{07504F53-3329-42C7-804F-54119661A19D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.Presentation.Server", "Blazor.Presentation.Server\Blazor.Presentation.Server.csproj", "{07504F53-3329-42C7-804F-54119661A19D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Shared.Implementations", "Blazor.Shared\Blazor.Shared.Implementations.csproj", "{1D6A6F08-A031-4869-B4D2-755A5EDC20F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.Shared.Implementations", "Blazor.Shared\Blazor.Shared.Implementations.csproj", "{1D6A6F08-A031-4869-B4D2-755A5EDC20F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Shared.Abstractions", "Blazor.Shared.Abstractions\Blazor.Shared.Abstractions.csproj", "{89C24943-A364-45E4-95DD-D8B0E13F5746}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.Shared.Abstractions", "Blazor.Shared.Abstractions\Blazor.Shared.Abstractions.csproj", "{89C24943-A364-45E4-95DD-D8B0E13F5746}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Shared.Entities", "Blazor.Shared.Entities\Blazor.Shared.Entities.csproj", "{53D7A10A-B424-456C-9524-80B6B1EC4F79}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.Shared.Entities", "Blazor.Shared.Entities\Blazor.Shared.Entities.csproj", "{53D7A10A-B424-456C-9524-80B6B1EC4F79}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazor.Presentation.Server.Identity", "Blazor.Presentation.Server.Identity\Blazor.Presentation.Server.Identity.csproj", "{CAE930DA-0F1C-44F7-BE4E-ACA47C3230D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.Presentation.Server.Identity", "Blazor.Presentation.Server.Identity\Blazor.Presentation.Server.Identity.csproj", "{CAE930DA-0F1C-44F7-BE4E-ACA47C3230D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
