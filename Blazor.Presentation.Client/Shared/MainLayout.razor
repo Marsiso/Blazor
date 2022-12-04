@@ -1,5 +1,5 @@
 ﻿@inherits LayoutComponentBase
-@using Blazor.Presentation.Client.Identity;
+@using Blazor.Shared.Entities.Identity;
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 @using Microsoft.AspNetCore.Components.Authorization
 @using Syncfusion.Blazor.Buttons
@@ -28,12 +28,11 @@
             </Authorized>
         </AuthorizeView>
 
-
         <AuthorizeView>
             <Authorized>
                 <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Products">
                     <DropDownMenuItems>
-                        <AuthorizeView Policy="@Policies.FromCzechia" Roles="admin" Context="CzechAdminUserContext">
+                        <AuthorizeView Policy="@Policies.FromCzechia" Roles="@Roles.Administrator" Context="CzechAdminUserContext">
                             <Authorized>
                                 <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/FetchData"></DropDownMenuItem>
                             </Authorized>
@@ -53,6 +52,7 @@
             </span>
         </div>
         <AppBarSpacer></AppBarSpacer>*@
+
         <AuthorizeView>
             <Authorized>
                 @*<SfButton CssClass="e-inherit" @onclick="BeginSignOut" IconCss="e-icons e-user" Content="@String.Join(' ', "Hello,", @context.User.Identity?.Name!, "   Log out")"><LoginDisplay></LoginDisplay></SfButton>*@
@@ -61,7 +61,7 @@
             <NotAuthorized>
                 <SfButton CssClass="e-inherit" @onclick="BeginLogin" IconCss="e-icons e-user" Content="Log in"><LoginDisplay></LoginDisplay></SfButton>
             </NotAuthorized>
-    </AuthorizeView>
+        </AuthorizeView>
     </SfAppBar>
 </div>
 <br/>

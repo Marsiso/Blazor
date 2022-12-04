@@ -1,6 +1,6 @@
 using Blazor.Presentation.Client;
-using Blazor.Presentation.Client.Identity;
 using Blazor.Presentation.Client.Services;
+using Blazor.Shared.Entities.Identity;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -8,6 +8,7 @@ using Syncfusion.Blazor;
 
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("NzczMDAwQDMyMzAyZTMzMmUzMFBsY1JXeHQvejRFL0d0VFZmT2FqZzRUVHFJRzBaWTJOQzQvd25HbWE3cEE9");
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
+
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
@@ -28,13 +29,13 @@ builder.Services.AddAuthorizationCore(options =>
     options.AddPolicy(Policies.FromCzechia, Policies.FromCzechiaPolicy());
 });
 
-builder.Services.AddSingleton<CarouselItemService>();
-builder.Services.AddSyncfusionBlazor();
-
 builder.Services.AddOidcAuthentication(options =>
 {
     builder.Configuration.Bind("oidc", options.ProviderOptions);
     options.UserOptions.RoleClaim = "role";
 });
+
+builder.Services.AddSingleton<CarouselItemService>();
+builder.Services.AddSyncfusionBlazor();
 
 await builder.Build().RunAsync();

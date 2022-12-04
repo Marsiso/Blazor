@@ -1,4 +1,5 @@
-﻿using IdentityModel;
+﻿using Blazor.Shared.Entities.Identity;
+using IdentityModel;
 using IdentityServer4;
 using IdentityServer4.Models;
 using IdentityServer4.Test;
@@ -8,7 +9,7 @@ namespace Blazor.Presentation.Server.Identity.Identity;
 
 internal static class Config
 {
-    static List<TestUser> GetUsers() => new List<TestUser>
+    static List<TestUser> GetUsers() => new()
     {
         new TestUser
         {
@@ -21,7 +22,9 @@ internal static class Config
                 new Claim(JwtClaimTypes.Name, "Marek Olsak"),
                 new Claim("family_name", "Olsak"),
                 new Claim("address", "Slopne"),
-                new Claim("role", "admin"),
+                new Claim("role", Roles.Visitor),
+                new Claim("role", Roles.Manager),
+                new Claim("role", Roles.Administrator),
                 new Claim("country", "Czechia")
             }
             },
@@ -36,7 +39,8 @@ internal static class Config
                 new Claim(JwtClaimTypes.Name, "Tomas Adamek"),
                 new Claim("family_name", "Adamek"),
                 new Claim("address", "Zlin"),
-                new Claim("role", "manager"),
+                new Claim("role", Roles.Visitor),
+                new Claim("role", Roles.Manager),
                 new Claim("country", "France")
             }
         }
