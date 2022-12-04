@@ -7,6 +7,4 @@ public sealed class CarouselItemDto
     public string Alt { get; set; }
 
     public string Caption { get; set; }
-
-    public string Src { get; set; }
 }

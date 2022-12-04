@@ -3,6 +3,7 @@ using Blazor.Presentation.Server.Filters;
 using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DataTransferObjects;
 using Blazor.Shared.Entities.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using System.Text;
@@ -10,7 +11,7 @@ using System.Text;
 namespace Blazor.Presentation.Server.Controllers;
 
 [Route("api/CarouselItem/{carouselItemId:int}/[controller]")]
-[ApiController]
+[ApiController, Authorize]
 public class ImageController : ControllerBase
 {
     readonly Serilog.ILogger _logger;

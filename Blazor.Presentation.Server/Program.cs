@@ -1,5 +1,6 @@
 using Blazor.Presentation.Server.Extensions;
 using Blazor.Presentation.Server.Filters;
+using Blazor.Shared.Entities.Identity;
 using Blazor.Shared.Entities.Mappings;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
@@ -30,7 +31,19 @@ builder.Services
     .ConfigureRepositoryManager()
     .AddAutoMapper(typeof(CarouselItemMappingProfile), typeof(ImageMappingProfile))
     .AddScoped<CarouselItemExistsValidationFilter>()
-    .AddScoped<ImageExistsValidationFilter>();
+    .AddScoped<ImageExistsValidationFilter>()
+    .AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", opt =>
+    {
+        opt.RequireHttpsMetadata = false; // for development purposes, disable in production!;
+        opt.Authority = "https://localhost:9001";
+        opt.Audience = "BlazorAPI";
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(Policies.FromCzechia, ServiceExtensions.FromCzechiaPolicy());
+});
 
 logger.Information("Services have been registered");
 
@@ -61,12 +74,9 @@ app
         ForwardedHeaders = ForwardedHeaders.All
     })
     .UseRouting()
+    .UseAuthentication()
     .UseAuthorization()
-    .UseEndpoints(endpoint =>
-    {
-        endpoint.MapControllers();
-    });
-
+    .UseEndpoints(endpoint => endpoint.MapControllers());
 
 logger.Information("Project services have been configured");
 

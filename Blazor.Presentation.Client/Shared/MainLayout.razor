@@ -1,14 +1,18 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+@using Microsoft.AspNetCore.Components.Authorization
 @using Syncfusion.Blazor.Buttons
 @using Syncfusion.Blazor.SplitButtons
 @inject NavigationManager NavigationManager
+@inject NavigationManager Navigation
+@inject SignOutSessionStateManager SignOutManager
 
 <div class="appbar-control-container">
     <SfAppBar ColorMode="AppBarColor.Dark">
         <SfButton CssClass="e-inherit" IconCss="e-icons e-home" OnClick="onHomeBtnClick"></SfButton>
         <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Carousel">
             <DropDownMenuItems>
-                <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings"></DropDownMenuItem>
+                <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/fetchdata"></DropDownMenuItem>
                 <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right"></DropDownMenuItem>
             </DropDownMenuItems>
         </SfDropDownButton>
@@ -19,16 +23,22 @@
             </DropDownMenuItems>
         </SfDropDownButton>
         <AppBarSpacer></AppBarSpacer>
-        <div style="width:400px" class="ralign">
+        @*<div style="width:400px" class="ralign">
             <span class="e-input-group e-control-wrapper e-inherit">
                 <input type="text" class="e-searchinput e-input" placeholder="Search" />
                 <span class="e-icons e-search e-input-group-icon"></span>
             </span>
         </div>
-        <AppBarSpacer></AppBarSpacer>
-        <SfButton CssClass="e-inherit" IconCss="e-icons e-user" Content="Login" OnClick="onLoginBtnClick"></SfButton>
-        <SfButton CssClass="e-inherit" IconCss="e-icons e-people" Content="Signin" OnClick="onSigninBtnClick"></SfButton>
-        <SfButton CssClass="e-inherit" IconCss="e-icons e-user" Content="Logout" OnClick="onLoginBtnClick"></SfButton>
+        <AppBarSpacer></AppBarSpacer>*@
+        <AuthorizeView>
+            <Authorized>
+                @*<SfButton CssClass="e-inherit" @onclick="BeginSignOut" IconCss="e-icons e-user" Content="@String.Join(' ', "Hello,", @context.User.Identity?.Name!, "   Log out")"><LoginDisplay></LoginDisplay></SfButton>*@
+                <SfButton CssClass="e-inherit" @onclick="BeginSignOut" IconCss="e-icons e-user" Content="Log out"><LoginDisplay></LoginDisplay></SfButton>
+            </Authorized>
+            <NotAuthorized>
+                <SfButton CssClass="e-inherit" @onclick="BeginLogin" IconCss="e-icons e-user" Content="Log in"><LoginDisplay></LoginDisplay></SfButton>
+            </NotAuthorized>
+    </AuthorizeView>
     </SfAppBar>
 </div>
 <br/>
@@ -46,9 +56,16 @@
 
     public void onHomeBtnClick() => NavigationManager.NavigateTo("#");
 
-    public void onLoginBtnClick() => NavigationManager.NavigateTo("/User/Login");
+    private async Task BeginSignOut(MouseEventArgs args)
+    {
+        await SignOutManager.SetSignOutState();
+        Navigation.NavigateTo("authentication/logout");
+    }
 
-    public void onSigninBtnClick() => NavigationManager.NavigateTo("/User/Signin");
+    private void BeginLogin()
+    {
+        Navigation.NavigateTo("authentication/login");
+    }
 }
 
 

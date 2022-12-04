@@ -2,6 +2,7 @@
 using Blazor.Shared.Entities.DbContexts;
 using Blazor.Shared.Entities.Responses;
 using Blazor.Shared.Implementations.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -51,4 +52,9 @@ internal static class ServiceExtensions
             });
         });
     }
+
+    internal static AuthorizationPolicy FromCzechiaPolicy() => new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .RequireClaim("country", "Czechia")
+        .Build();
 }

@@ -3,6 +3,7 @@ using Blazor.Presentation.Server.Filters;
 using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DataTransferObjects;
 using Blazor.Shared.Entities.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Blazor.Presentation.Server.Controllers;
@@ -23,6 +24,7 @@ public sealed class CarouselItemController : ControllerBase
     }
 
     [HttpGet(Name = "GetAllCarouselItemsAsync")]
+    [Authorize()]
     public async Task<IActionResult> GetAllCarouselItemsAsync()
     {
         var carouselItemEntities = await _repository.CarouselItem.GetAllCarouselItemsAsync(false);
