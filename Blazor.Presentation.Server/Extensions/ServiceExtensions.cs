@@ -1,4 +1,5 @@
-﻿using Blazor.Shared.Abstractions;
+﻿using Blazor.Presentation.Server.Formatters;
+using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DbContexts;
 using Blazor.Shared.Entities.Responses;
 using Blazor.Shared.Implementations.Repositories;
@@ -57,4 +58,7 @@ internal static class ServiceExtensions
         .RequireAuthenticatedUser()
         .RequireClaim("country", "Czechia")
         .Build();
+
+    internal static IMvcBuilder AddCustomCSVFormatter(this IMvcBuilder builder) =>
+        builder.AddMvcOptions(config => config.OutputFormatters.Add(new CsvOutputFormatter()));
 }

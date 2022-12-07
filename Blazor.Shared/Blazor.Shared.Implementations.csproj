@@ -10,4 +10,8 @@
     <ProjectReference Include="..\Blazor.Shared.Abstractions\Blazor.Shared.Abstractions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Formatters\" />
+  </ItemGroup>
+
 </Project>

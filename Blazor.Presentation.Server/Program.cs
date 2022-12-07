@@ -20,7 +20,9 @@ builder.Services.AddControllers(configure =>
 {
     configure.RespectBrowserAcceptHeader = true;
     configure.ReturnHttpNotAcceptable = true;
-});
+})
+    .AddXmlDataContractSerializerFormatters()
+    .AddCustomCSVFormatter();
 
 builder.Services
     .AddEndpointsApiExplorer()

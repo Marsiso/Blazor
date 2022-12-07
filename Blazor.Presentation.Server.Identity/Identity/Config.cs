@@ -27,13 +27,13 @@ internal static class Config
                 new Claim("role", Roles.Administrator),
                 new Claim("country", "Czechia")
             }
-            },
-            new TestUser
-            {
-                SubjectId = "{34119795-78A6-44C2-B128-30BFBC29139D}",
-                Username = "t_adamek@utb.cz",
-                Password = "Password9910014785",
-                Claims = new List<Claim>
+        },
+        new TestUser
+        {
+            SubjectId = "{34119795-78A6-44C2-B128-30BFBC29139D}",
+            Username = "t_adamek@utb.cz",
+            Password = "Password9910014785",
+            Claims = new List<Claim>
             {
                 new Claim("given_name", "Tomas"),
                 new Claim(JwtClaimTypes.Name, "Tomas Adamek"),
