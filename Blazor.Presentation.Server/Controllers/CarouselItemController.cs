@@ -35,8 +35,37 @@ public sealed class CarouselItemController : ControllerBase
     [ServiceFilter(typeof(CarouselItemExistsValidationFilter))]
     public async Task<IActionResult> GetCarouselItemAsync(int carouselItemId)
     {
-        var carouselItemEntity = HttpContext.Items["carouselItemEntity"] as CarouselItemEntity;
+        var carouselItemEntity = HttpContext.Items[nameof(CarouselItemEntity)] as CarouselItemEntity;
         var carouselItemDto = _mapper.Map<CarouselItemDto>(carouselItemEntity);
         return Ok(carouselItemDto);
+    }
+
+    [HttpPost(Name = "CreateCarouselItemAsync")]
+    public async Task<IActionResult> CreateCarouselItemAsync([FromBody] CarouselItemForCreationDto carouselItem)
+    {
+        if (carouselItem == null)
+        {
+            _logger.Warning("CarouselItemForCreationDto object sent from client is null");
+            return BadRequest("CarouselItemForCreationDto object sent from client is null");
+        }
+
+        var carouselItemEntity = _mapper.Map<CarouselItemEntity>(carouselItem);
+        _repository.CarouselItem.CreateCarouselItem(carouselItemEntity);
+        await _repository.SaveAsync();
+
+        var carouselItemToReturn = _mapper.Map<CarouselItemDto>(carouselItemEntity);
+
+        return CreatedAtRoute(/*nameof(GetCarouselItemAsync)*/"CreateCarouselItemAsync", new { id = carouselItemToReturn.Id }, carouselItemToReturn);
+    }
+
+    [HttpDelete("{carouselItemId:int}", Name = "DeleteCarouselItem")]
+    [ServiceFilter(typeof(CarouselItemExistsValidationFilter))]
+    public async Task<IActionResult> DeleteCarouselItemAsync(int carouselItemId)
+    {
+        var carouselItemEntity = HttpContext.Items[nameof(CarouselItemEntity)] as CarouselItemEntity;
+        _repository.CarouselItem.DeleteCarouselItem(carouselItemEntity);
+        await _repository.SaveAsync();
+
+        return NotFound();
     }
 }

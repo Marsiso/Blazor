@@ -4,10 +4,10 @@ namespace Blazor.Shared.Entities.Identity;
 
 public static class Policies
 {
-    public const string FromCzechia = "FromCzechia";
-    public const string FromSlovakia = "FromSlovakia";
-    public const string FromGermany = "FromGermany";
-    public const string FromFrance = "FromFrance";
+    public static readonly string FromCzechia = "FromCzechia";
+    public static readonly string FromSlovakia = "FromSlovakia";
+    public static readonly string FromGermany = "FromGermany";
+    public static readonly string FromFrance = "FromFrance";
 
     public static AuthorizationPolicy FromCzechiaPolicy() => new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()

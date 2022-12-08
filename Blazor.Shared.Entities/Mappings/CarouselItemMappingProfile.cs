@@ -9,5 +9,6 @@ public sealed class CarouselItemMappingProfile : Profile
     public CarouselItemMappingProfile()
     {
         CreateMap<CarouselItemEntity, CarouselItemDto>().ReverseMap();
+        CreateMap<CarouselItemForCreationDto, CarouselItemEntity>().ReverseMap();
     }
 }

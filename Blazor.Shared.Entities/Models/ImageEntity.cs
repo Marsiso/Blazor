@@ -9,15 +9,15 @@ public sealed class ImageEntity
     [Column("pk_image"), Key]
     public int Id { get; set; }
 
-    [Column("image_unsafe_name"), Required(ErrorMessage = "Image name is a required field")]
-    [DataType(DataType.Text, ErrorMessage = "Image name must be text value type")]
+    [Column("image_unsafe_name"), Required(ErrorMessage = "Untrusted image name is a required field")]
+    [DataType(DataType.Text, ErrorMessage = "Untrusted image name must be text value type")]
     public string UnsafeName { get; set; }
 
-    [Column("image_safe_name"), Required(ErrorMessage = "Image path is a required field")]
-    [DataType(DataType.Text, ErrorMessage = "Image path name must be text value type")]
+    [Column("image_safe_name"), Required(ErrorMessage = "Trusted image name is a required field")]
+    [DataType(DataType.Text, ErrorMessage = "Trusted image name must be text value type")]
     public string SafeName { get; set; }
 
-    [Column("fk_carousel_item"), ForeignKey(nameof(CarouselItem))]
+    [Column("fk_carousel_item"), ForeignKey(nameof(CarouselItemEntity))]
     public int CarouselItemId { get; set; }
 
     public CarouselItemEntity CarouselItem { get; set; }

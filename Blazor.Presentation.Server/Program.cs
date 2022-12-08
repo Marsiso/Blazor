@@ -33,7 +33,10 @@ builder.Services
     .ConfigureRepositoryManager()
     .AddAutoMapper(typeof(CarouselItemMappingProfile), typeof(ImageMappingProfile))
     .AddScoped<CarouselItemExistsValidationFilter>()
+    .AddScoped<ValidationFilter>()
     .AddScoped<ImageExistsValidationFilter>()
+    .AddScoped<ImageFormatValidationFilter>()
+    .AddScoped<ImageSizeValidationFilter>()
     .AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", opt =>
     {

@@ -11,6 +11,10 @@ public sealed class CarouselItemRepository : RepositoryBase<CarouselItemEntity>,
     {
     }
 
+    public void CreateCarouselItem(CarouselItemEntity carouselItem) => Create(carouselItem);
+
+    public void DeleteCarouselItem(CarouselItemEntity carouselItem) => Delete(carouselItem);
+
     public async Task<IEnumerable<CarouselItemEntity>> GetAllCarouselItemsAsync(bool trackChanges) =>
         await FindAll(trackChanges)
         .OrderBy(ci => ci.Id)
@@ -19,4 +23,6 @@ public sealed class CarouselItemRepository : RepositoryBase<CarouselItemEntity>,
     public async Task<CarouselItemEntity> GetCarouselItemAsync(int carouselItemId, bool trackChanges) =>
         await FindByCondition(ci => ci.Id == carouselItemId, trackChanges)
         .SingleOrDefaultAsync();
+
+    public void UpdateCarouselItem(CarouselItemEntity carouselItem) => Update(carouselItem);
 }

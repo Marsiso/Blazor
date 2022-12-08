@@ -21,17 +21,17 @@ public sealed class ImageExistsValidationFilter : IAsyncActionFilter
     {
         var method = context.HttpContext.Request.Method;
         var trackChanges = method.Equals("PUT") || method.Equals("PATCH") || method.Equals("POST");
-        var carouselItemEntity = context.HttpContext.Items["carouselItemEntity"] as CarouselItemEntity;
+        var carouselItemEntity = context.HttpContext.Items[nameof(CarouselItemEntity)] as CarouselItemEntity;
 
         var imageEntity = await _repository.Image.GetImageByCarouselItemAsync(carouselItemEntity, trackChanges);
         if (imageEntity == null)
         {
             _logger.Information("Carousel item with id: {Id} doesn't have image in the database", carouselItemEntity.Id);
-            context.Result = new NotFoundResult();
+            context.Result = new NotFoundObjectResult(String.Format("Carousel item with id: {0} doesn't have image in the database", carouselItemEntity.Id));
         }
         else
         {
-            context.HttpContext.Items.Add("imageEntity", imageEntity);
+            context.HttpContext.Items.Add(nameof(ImageEntity), imageEntity);
             await next();
         }
     }

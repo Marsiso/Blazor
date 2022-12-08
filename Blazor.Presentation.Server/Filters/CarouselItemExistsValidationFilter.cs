@@ -1,4 +1,5 @@
 ﻿using Blazor.Shared.Abstractions;
+using Blazor.Shared.Entities.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -21,7 +22,7 @@ public sealed class CarouselItemExistsValidationFilter : IAsyncActionFilter
     {
         var method = context.HttpContext.Request.Method;
         var trackChanges = method.Equals("PUT") || method.Equals("PATCH") || method.Equals("POST");
-        var id = (int)context.ActionArguments["carouselItemId"]!;
+        var id = (int)context.ActionArguments["carouselItemId"];
 
         var carouselItemEntity = await _repository.CarouselItem.GetCarouselItemAsync(id, trackChanges);
         if (carouselItemEntity == null)
@@ -31,7 +32,7 @@ public sealed class CarouselItemExistsValidationFilter : IAsyncActionFilter
         }
         else
         {
-            context.HttpContext.Items.Add("carouselItemEntity", carouselItemEntity);
+            context.HttpContext.Items.Add(nameof(CarouselItemEntity), carouselItemEntity);
             await next();
         }
     }

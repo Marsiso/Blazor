@@ -9,5 +9,6 @@ public sealed class ImageMappingProfile : Profile
     public ImageMappingProfile()
     {
         CreateMap<ImageEntity, ImageDto>().ReverseMap();
+        CreateMap<ImageForCreationDto, ImageEntity>().ReverseMap();
     }
 }

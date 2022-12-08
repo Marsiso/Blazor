@@ -2,7 +2,7 @@
 
 public static class Roles
 {
-    public const string Administrator = "admin";
-    public const string Manager = "manager";
-    public const string Visitor = "visitor";
+    public static readonly string Administrator = "admin";
+    public static readonly string Manager = "manager";
+    public static readonly string Visitor = "visitor";
 }
