@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Blazor.Presentation.Server.Filters;
+using Blazor.Presentation.Server.ModelBinders;
 using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DataTransferObjects;
 using Blazor.Shared.Entities.Models;
@@ -24,6 +25,8 @@ public sealed class CarouselItemController : ControllerBase
 
     [HttpGet(Name = "GetAllCarouselItemsAsync")]
     //[Authorize(Policy = Policies.FromCzechia)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAllCarouselItemsAsync()
     {
         var carouselItemEntities = await _repository.CarouselItem.GetAllCarouselItemsAsync(false);
@@ -31,16 +34,72 @@ public sealed class CarouselItemController : ControllerBase
         return Ok(carouselItemsDtos);
     }
 
-    [HttpGet("{carouselItemId:int}", Name = "GetCarouselItemAsync")]
+    [HttpGet("Collection/({carouselItemIds})", Name = "GetCarouselItemsByIdsAsync")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetCarouselItemsByIdsAsync([ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<int> carouselItemIds)
+    {
+        if (carouselItemIds == null)
+        {
+            _logger.Warning("Parameter ids sent from client is null");
+            return BadRequest("Parameter ids sent from client is null");
+        }
+
+        var carouselItemEntities = await _repository.CarouselItem.GetCarouselItemsByIds(carouselItemIds, false);
+        if (carouselItemIds.Count() != carouselItemEntities.Count())
+        {
+            _logger.Warning("Some ids are not valid in a collection");
+            return NotFound("Some ids are not valid in a collection");
+        }
+
+        var carouselItemsToReturn = _mapper.Map<IEnumerable<CarouselItemDto>>(carouselItemEntities);
+        return Ok(carouselItemsToReturn);
+    }
+
+    [HttpGet("{carouselItemId:int}", Name = "GetCarouselItem")]
     [ServiceFilter(typeof(CarouselItemExistsValidationFilter))]
-    public async Task<IActionResult> GetCarouselItemAsync(int carouselItemId)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult GetCarouselItem(int carouselItemId)
     {
         var carouselItemEntity = HttpContext.Items[nameof(CarouselItemEntity)] as CarouselItemEntity;
         var carouselItemDto = _mapper.Map<CarouselItemDto>(carouselItemEntity);
         return Ok(carouselItemDto);
     }
 
+    [HttpPost("Collection", Name = "CreateCarouselItemCollectionAsync")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CreateCarouselItemCollectionAsync([FromBody] IEnumerable<CarouselItemForCreationDto> carouselItemCollection)
+    {
+        if (carouselItemCollection == null)
+        {
+            _logger.Warning("CarouselItem collection sent from client is null.");
+            return BadRequest("CarouselItem collection is null");
+        }
+
+        var carouselItemEntities = _mapper.Map<IEnumerable<CarouselItemEntity>>(carouselItemCollection);
+        foreach (var carouselItemEntity in carouselItemEntities)
+        {
+            _repository.CarouselItem.CreateCarouselItem(carouselItemEntity);
+        }
+
+        await _repository.SaveAsync();
+
+        var companyCollectionToReturn = _mapper.Map<IEnumerable<CarouselItemDto>>(carouselItemEntities);
+        var ids = string.Join(",", companyCollectionToReturn.Select(ci => ci.Id));
+
+        return CreatedAtRoute(nameof(GetCarouselItemsByIdsAsync), new { carouselItemIds = ids }, companyCollectionToReturn);
+    }
+
     [HttpPost(Name = "CreateCarouselItemAsync")]
+    [ServiceFilter(typeof(ValidationFilter))]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateCarouselItemAsync([FromBody] CarouselItemForCreationDto carouselItem)
     {
         if (carouselItem == null)
@@ -55,17 +114,19 @@ public sealed class CarouselItemController : ControllerBase
 
         var carouselItemToReturn = _mapper.Map<CarouselItemDto>(carouselItemEntity);
 
-        return CreatedAtRoute(/*nameof(GetCarouselItemAsync)*/"CreateCarouselItemAsync", new { id = carouselItemToReturn.Id }, carouselItemToReturn);
+        return CreatedAtRoute(nameof(GetCarouselItem), new { carouselItemId = carouselItemToReturn.Id }, carouselItemToReturn);
     }
 
     [HttpDelete("{carouselItemId:int}", Name = "DeleteCarouselItem")]
     [ServiceFilter(typeof(CarouselItemExistsValidationFilter))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteCarouselItemAsync(int carouselItemId)
     {
         var carouselItemEntity = HttpContext.Items[nameof(CarouselItemEntity)] as CarouselItemEntity;
         _repository.CarouselItem.DeleteCarouselItem(carouselItemEntity);
         await _repository.SaveAsync();
 
-        return NotFound();
+        return NotFound("Carousel item has been successfully deleted");
     }
 }

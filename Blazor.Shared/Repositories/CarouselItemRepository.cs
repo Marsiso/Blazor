@@ -24,5 +24,9 @@ public sealed class CarouselItemRepository : RepositoryBase<CarouselItemEntity>,
         await FindByCondition(ci => ci.Id == carouselItemId, trackChanges)
         .SingleOrDefaultAsync();
 
+    public async Task<IEnumerable<CarouselItemEntity>> GetCarouselItemsByIds(IEnumerable<int> ids, bool trackChanges) =>
+        await FindByCondition(ci => ids.Contains(ci.Id), trackChanges)
+        .ToListAsync();
+
     public void UpdateCarouselItem(CarouselItemEntity carouselItem) => Update(carouselItem);
 }

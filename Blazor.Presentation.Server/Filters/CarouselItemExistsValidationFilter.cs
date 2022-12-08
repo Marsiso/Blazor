@@ -28,7 +28,7 @@ public sealed class CarouselItemExistsValidationFilter : IAsyncActionFilter
         if (carouselItemEntity == null)
         {
             _logger.Warning("Carousel item with id: {Id} doesn't exist in the database", id);
-            context.Result = new NotFoundResult();
+            context.Result = new NotFoundObjectResult(String.Format("Carousel item with id: {0} doesn't exist in the database", id));
         }
         else
         {
