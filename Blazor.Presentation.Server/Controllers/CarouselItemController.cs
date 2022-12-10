@@ -4,6 +4,7 @@ using Blazor.Presentation.Server.ModelBinders;
 using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DataTransferObjects;
 using Blazor.Shared.Entities.Models;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Blazor.Presentation.Server.Controllers;
@@ -126,7 +127,41 @@ public sealed class CarouselItemController : ControllerBase
         var carouselItemEntity = HttpContext.Items[nameof(CarouselItemEntity)] as CarouselItemEntity;
         _repository.CarouselItem.DeleteCarouselItem(carouselItemEntity);
         await _repository.SaveAsync();
+        
+        _logger.Information("Carousel item has been successfully deleted");
+        return NoContent();
+    }
 
-        return NotFound("Carousel item has been successfully deleted");
+    [HttpPut("{carouselItemId:int}", Name = "UpdateCarouselItemAsync")]
+    [ServiceFilter(typeof(ValidationFilter), Order = 1)]
+    [ServiceFilter(typeof(CarouselItemExistsValidationFilter), Order = 2)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateCarouselItemAsync(int carouselItemId, [FromBody] CarouselItemForUpdateDto carouselItem)
+    {
+        var carouselItemEntity = HttpContext.Items[nameof(CarouselItemEntity)] as CarouselItemEntity;
+        _mapper.Map(carouselItem, carouselItemEntity);
+        await _repository.SaveAsync();
+        
+        _logger.Information("Carousel item has been successfully updated");
+        return NoContent();
+    }
+    
+    
+    [HttpPatch("{carouselItemId:int}", Name = "UpdateCarouselItemAsync")]
+    [ServiceFilter(typeof(ValidationFilter), Order = 1)]
+    [ServiceFilter(typeof(CarouselItemExistsValidationFilter), Order = 2)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateCarouselItemAsync(int carouselItemId, [FromBody] JsonPatchDocument<CarouselItemForUpdateDto> patchDoc)
+    {
+        var carouselItemEntity = HttpContext.Items[nameof(CarouselItemEntity)] as CarouselItemEntity;
+        var carouselItemToPatch = _mapper.Map<CarouselItemForUpdateDto>(carouselItemEntity);
+        patchDoc.ApplyTo(carouselItemToPatch);
+        _mapper.Map(carouselItemToPatch, carouselItemEntity);
+        await _repository.SaveAsync();
+        
+        _logger.Information("Carousel item has been successfully updated");
+        return NoContent();
     }
 }
