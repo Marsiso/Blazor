@@ -15,10 +15,10 @@ namespace Blazor.Presentation.Server.Controllers;
 [ApiController]
 public class ImageController : ControllerBase
 {
-    readonly Serilog.ILogger _logger;
-    readonly IRepositoryManager _repository;
-    readonly IMapper _mapper;
-    readonly IWebHostEnvironment _webHost;
+    private readonly Serilog.ILogger _logger;
+    private readonly IRepositoryManager _repository;
+    private readonly IMapper _mapper;
+    private readonly IWebHostEnvironment _webHost;
 
     public ImageController(Serilog.ILogger logger, IRepositoryManager repository, IMapper mapper, IWebHostEnvironment webHost)
     {

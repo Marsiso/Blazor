@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Formatters\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Blazor.Shared.Abstractions\Blazor.Shared.Abstractions.csproj" />
   </ItemGroup>
 

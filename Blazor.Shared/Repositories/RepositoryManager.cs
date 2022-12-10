@@ -5,9 +5,9 @@ namespace Blazor.Shared.Implementations.Repositories;
 
 public sealed class RepositoryManager : IRepositoryManager
 {
-    readonly SqlContext _context;
-    ICarouselItemRepository _carouselItem;
-    IImageRepository _image;
+    private readonly SqlContext _context;
+    private ICarouselItemRepository _carouselItem;
+    private IImageRepository _image;
 
     public RepositoryManager(SqlContext context)
     {

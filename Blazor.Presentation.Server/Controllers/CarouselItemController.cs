@@ -4,8 +4,10 @@ using Blazor.Presentation.Server.ModelBinders;
 using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DataTransferObjects;
 using Blazor.Shared.Entities.Models;
+using Blazor.Shared.Entities.RequestFeatures;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Blazor.Presentation.Server.Controllers;
 
@@ -13,9 +15,9 @@ namespace Blazor.Presentation.Server.Controllers;
 [ApiController]
 public sealed class CarouselItemController : ControllerBase
 {
-    readonly Serilog.ILogger _logger;
-    readonly IRepositoryManager _repository;
-    readonly IMapper _mapper;
+    private readonly Serilog.ILogger _logger;
+    private readonly IRepositoryManager _repository;
+    private readonly IMapper _mapper;
 
     public CarouselItemController(Serilog.ILogger logger, IRepositoryManager repository, IMapper mapper)
     {
@@ -28,11 +30,12 @@ public sealed class CarouselItemController : ControllerBase
     //[Authorize(Policy = Policies.FromCzechia)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetAllCarouselItemsAsync()
+    public async Task<IActionResult> GetAllCarouselItemsAsync([FromQuery] CarouselItemParameters carouselItemParameters)
     {
-        var carouselItemEntities = await _repository.CarouselItem.GetAllCarouselItemsAsync(false);
-        var carouselItemsDtos = _mapper.Map<IEnumerable<CarouselItemDto>>(carouselItemEntities);
-        return Ok(carouselItemsDtos);
+        var carouselItemEntities = await _repository.CarouselItem.GetAllCarouselItemsAsync(carouselItemParameters, false);
+        Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(carouselItemEntities.MetaData));
+        var carouselItemsDto = _mapper.Map<IEnumerable<CarouselItemDto>>(carouselItemEntities);
+        return Ok(carouselItemsDto);
     }
 
     [HttpGet("Collection/({carouselItemIds})", Name = "GetCarouselItemsByIdsAsync")]
