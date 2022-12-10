@@ -10,4 +10,8 @@
     <ProjectReference Include="..\Blazor.Shared.Abstractions\Blazor.Shared.Abstractions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.2.23" />
+  </ItemGroup>
+
 </Project>

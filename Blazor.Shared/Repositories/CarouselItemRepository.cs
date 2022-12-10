@@ -22,7 +22,7 @@ public sealed class CarouselItemRepository : RepositoryBase<CarouselItemEntity>,
         var carouselItems = await FindAll(trackChanges)
             .FilterCarouselItems(carouselItemParameters.MinId, carouselItemParameters.MaxId)
             .SearchCarouselItems(carouselItemParameters.SearchTerm)
-            .OrderBy(ci => ci.Id)
+            .SortCarouselItems(carouselItemParameters.OrderBy)
             .ToListAsync();
         
         return PagedList<CarouselItemEntity>.ToPagedList(carouselItems, carouselItemParameters.PageNumber, carouselItemParameters.PageSize);
