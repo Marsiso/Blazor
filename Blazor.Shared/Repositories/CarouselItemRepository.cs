@@ -2,6 +2,7 @@
 using Blazor.Shared.Entities.DbContexts;
 using Blazor.Shared.Entities.Models;
 using Blazor.Shared.Entities.RequestFeatures;
+using Blazor.Shared.Implementations.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Blazor.Shared.Implementations.Repositories;
@@ -18,9 +19,9 @@ public sealed class CarouselItemRepository : RepositoryBase<CarouselItemEntity>,
 
     public async Task<PagedList<CarouselItemEntity>> GetAllCarouselItemsAsync(CarouselItemParameters carouselItemParameters, bool trackChanges)
     {
-        var carouselItems = await FindByCondition(ci => 
-                ci.Id >= carouselItemParameters.MinId && 
-                carouselItemParameters.MaxId >= ci.Id, trackChanges)
+        var carouselItems = await FindAll(trackChanges)
+            .FilterCarouselItems(carouselItemParameters.MinId, carouselItemParameters.MaxId)
+            .SearchCarouselItems(carouselItemParameters.SearchTerm)
             .OrderBy(ci => ci.Id)
             .ToListAsync();
         
