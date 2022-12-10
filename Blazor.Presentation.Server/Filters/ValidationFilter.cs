@@ -26,7 +26,7 @@ public sealed class ValidationFilter : IActionFilter
         if (param == null)
         {
             _logger.Warning("Object sent from client is null. Controller: {Controller} Action: {Action}", controller, action);
-            context.Result = new BadRequestObjectResult(String.Format("Object is null. Controller: {0}, action: {1}", controller, action));
+            context.Result = new BadRequestObjectResult(String.Format("Object sent from client is null. Controller: {0}, action: {1}", controller, action));
 
             return;
         }

@@ -85,6 +85,12 @@ public sealed class CarouselItemController : ControllerBase
         var carouselItemEntities = _mapper.Map<IEnumerable<CarouselItemEntity>>(carouselItemCollection);
         foreach (var carouselItemEntity in carouselItemEntities)
         {
+            if (!TryValidateModel(carouselItemEntity))
+            {
+                _logger.Error("Invalid model state for the carousel item"); 
+                return UnprocessableEntity(ModelState);
+            }
+            
             _repository.CarouselItem.CreateCarouselItem(carouselItemEntity);
         }
 
@@ -103,12 +109,6 @@ public sealed class CarouselItemController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateCarouselItemAsync([FromBody] CarouselItemForCreationDto carouselItem)
     {
-        if (carouselItem == null)
-        {
-            _logger.Warning("CarouselItemForCreationDto object sent from client is null");
-            return BadRequest("CarouselItemForCreationDto object sent from client is null");
-        }
-
         var carouselItemEntity = _mapper.Map<CarouselItemEntity>(carouselItem);
         _repository.CarouselItem.CreateCarouselItem(carouselItemEntity);
         await _repository.SaveAsync();
@@ -148,16 +148,23 @@ public sealed class CarouselItemController : ControllerBase
     }
     
     
-    [HttpPatch("{carouselItemId:int}", Name = "UpdateCarouselItemAsync")]
+    [HttpPatch("{carouselItemId:int}", Name = "PartiallyUpdateCarouselItemAsync")]
     [ServiceFilter(typeof(ValidationFilter), Order = 1)]
     [ServiceFilter(typeof(CarouselItemExistsValidationFilter), Order = 2)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> UpdateCarouselItemAsync(int carouselItemId, [FromBody] JsonPatchDocument<CarouselItemForUpdateDto> patchDoc)
+    public async Task<IActionResult> PartiallyUpdateCarouselItemAsync(int carouselItemId, [FromBody] JsonPatchDocument<CarouselItemForUpdateDto> patchDoc)
     {
         var carouselItemEntity = HttpContext.Items[nameof(CarouselItemEntity)] as CarouselItemEntity;
         var carouselItemToPatch = _mapper.Map<CarouselItemForUpdateDto>(carouselItemEntity);
+        
         patchDoc.ApplyTo(carouselItemToPatch);
+        if (!TryValidateModel(carouselItemToPatch))
+        {
+            _logger.Error("Invalid model state for the patch document"); 
+            return UnprocessableEntity(ModelState);
+        }
+
         _mapper.Map(carouselItemToPatch, carouselItemEntity);
         await _repository.SaveAsync();
         

@@ -3,6 +3,7 @@ using Blazor.Presentation.Server.Filters;
 using Blazor.Shared.Entities.Identity;
 using Blazor.Shared.Entities.Mappings;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +27,10 @@ builder.Services.AddControllers(configure =>
     .AddCustomCSVFormatter();
 
 builder.Services
+    .Configure<ApiBehaviorOptions>(options =>
+    {
+        options.SuppressModelStateInvalidFilter = true;
+    })
     .AddEndpointsApiExplorer()
     .AddSwaggerGen()
     .ConfigureSqlContext(builder.Configuration)
