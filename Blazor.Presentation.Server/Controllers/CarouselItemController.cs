@@ -18,12 +18,14 @@ public sealed class CarouselItemController : ControllerBase
     private readonly Serilog.ILogger _logger;
     private readonly IRepositoryManager _repository;
     private readonly IMapper _mapper;
+    private readonly IDataShaper<CarouselItemDto> _dataShaper;
 
-    public CarouselItemController(Serilog.ILogger logger, IRepositoryManager repository, IMapper mapper)
+    public CarouselItemController(Serilog.ILogger logger, IRepositoryManager repository, IMapper mapper, IDataShaper<CarouselItemDto> dataShaper)
     {
         _logger = logger;
         _repository = repository;
         _mapper = mapper;
+        _dataShaper = dataShaper;
     }
 
     [HttpGet(Name = "GetAllCarouselItemsAsync")]
@@ -35,7 +37,7 @@ public sealed class CarouselItemController : ControllerBase
         var carouselItemEntities = await _repository.CarouselItem.GetAllCarouselItemsAsync(carouselItemParameters, false);
         Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(carouselItemEntities.MetaData));
         var carouselItemsDto = _mapper.Map<IEnumerable<CarouselItemDto>>(carouselItemEntities);
-        return Ok(carouselItemsDto);
+        return Ok(_dataShaper.ShapeData(carouselItemsDto, carouselItemParameters.Fields));
     }
 
     [HttpGet("Collection/({carouselItemIds})", Name = "GetCarouselItemsByIdsAsync")]

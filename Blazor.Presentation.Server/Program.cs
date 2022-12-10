@@ -1,7 +1,11 @@
 using Blazor.Presentation.Server.Extensions;
 using Blazor.Presentation.Server.Filters;
+using Blazor.Shared.Abstractions;
+using Blazor.Shared.Entities.DataTransferObjects;
 using Blazor.Shared.Entities.Identity;
 using Blazor.Shared.Entities.Mappings;
+using Blazor.Shared.Entities.Models;
+using Blazor.Shared.Implementations.DataShaping;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -43,6 +47,7 @@ builder.Services
     .AddScoped<ImageExistsValidationFilter>()
     .AddScoped<ImageFormatValidationFilter>()
     .AddScoped<ImageSizeValidationFilter>()
+    .AddScoped<IDataShaper<CarouselItemDto>, DataShaper<CarouselItemDto>>()
     .AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", opt =>
     {
