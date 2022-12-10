@@ -18,7 +18,9 @@ public sealed class CarouselItemRepository : RepositoryBase<CarouselItemEntity>,
 
     public async Task<PagedList<CarouselItemEntity>> GetAllCarouselItemsAsync(CarouselItemParameters carouselItemParameters, bool trackChanges)
     {
-        var carouselItems = await FindAll(trackChanges)
+        var carouselItems = await FindByCondition(ci => 
+                ci.Id >= carouselItemParameters.MinId && 
+                carouselItemParameters.MaxId >= ci.Id, trackChanges)
             .OrderBy(ci => ci.Id)
             .ToListAsync();
         
