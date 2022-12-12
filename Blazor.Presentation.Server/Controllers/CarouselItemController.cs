@@ -20,13 +20,15 @@ public sealed class CarouselItemController : ControllerBase
     private readonly IRepositoryManager _repository;
     private readonly IMapper _mapper;
     private readonly CarouselItemLinks _carouselItemLinks;
+    private readonly IDataShaper<CarouselItemDto> _dataShaper;
 
-    public CarouselItemController(Serilog.ILogger logger, IRepositoryManager repository, IMapper mapper, CarouselItemLinks carouselItemLinks)
+    public CarouselItemController(Serilog.ILogger logger, IRepositoryManager repository, IMapper mapper, CarouselItemLinks carouselItemLinks, IDataShaper<CarouselItemDto> dataShaper)
     {
         _logger = logger;
         _repository = repository;
         _mapper = mapper;
         _carouselItemLinks = carouselItemLinks;
+        _dataShaper = dataShaper;
     }
 
     [HttpGet(Name = "GetAllCarouselItemsAsync")]
@@ -77,15 +79,25 @@ public sealed class CarouselItemController : ControllerBase
     }
 
     [HttpGet("{carouselItemId:int}", Name = "GetCarouselItem")]
-    [ServiceFilter(typeof(CarouselItemExistsValidationFilter))]
+    [ServiceFilter(typeof(ValidateMediaTypeAttribute), Order = 1)]
+    [ServiceFilter(typeof(CarouselItemExistsValidationFilter), Order = 2)]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public IActionResult GetCarouselItem(int carouselItemId)
+    public IActionResult GetCarouselItem(int carouselItemId, [FromQuery] CarouselItemParameters carouselItemParameters)
     {
         var carouselItemEntity = HttpContext.Items[nameof(CarouselItemEntity)] as CarouselItemEntity;
         var carouselItemDto = _mapper.Map<CarouselItemDto>(carouselItemEntity);
-        return Ok(carouselItemDto);
+        
+        var links = _carouselItemLinks.TryGenerateLinks(
+            new []{ carouselItemDto }, 
+            carouselItemParameters.Fields, 
+            HttpContext);
+
+        return links.HasLinks
+            ? Ok(links.LinkedEntities)
+            : Ok(links.ShapedEntities);
     }
 
     [HttpPost("Collection", Name = "CreateCarouselItemCollectionAsync")]
