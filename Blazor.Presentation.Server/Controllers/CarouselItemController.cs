@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Blazor.Presentation.Server.Filters;
 using Blazor.Presentation.Server.ModelBinders;
+using Blazor.Presentation.Server.Utility;
 using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DataTransferObjects;
 using Blazor.Shared.Entities.Models;
@@ -18,26 +19,37 @@ public sealed class CarouselItemController : ControllerBase
     private readonly Serilog.ILogger _logger;
     private readonly IRepositoryManager _repository;
     private readonly IMapper _mapper;
-    private readonly IDataShaper<CarouselItemDto> _dataShaper;
+    private readonly CarouselItemLinks _carouselItemLinks;
 
-    public CarouselItemController(Serilog.ILogger logger, IRepositoryManager repository, IMapper mapper, IDataShaper<CarouselItemDto> dataShaper)
+    public CarouselItemController(Serilog.ILogger logger, IRepositoryManager repository, IMapper mapper, CarouselItemLinks carouselItemLinks)
     {
         _logger = logger;
         _repository = repository;
         _mapper = mapper;
-        _dataShaper = dataShaper;
+        _carouselItemLinks = carouselItemLinks;
     }
 
     [HttpGet(Name = "GetAllCarouselItemsAsync")]
     //[Authorize(Policy = Policies.FromCzechia)]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ServiceFilter(typeof(ValidateMediaTypeAttribute))]
     public async Task<IActionResult> GetAllCarouselItemsAsync([FromQuery] CarouselItemParameters carouselItemParameters)
     {
-        var carouselItemEntities = await _repository.CarouselItem.GetAllCarouselItemsAsync(carouselItemParameters, false);
+        var carouselItemEntities = await _repository.CarouselItem
+            .GetAllCarouselItemsAsync(carouselItemParameters, false);
         Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(carouselItemEntities.MetaData));
         var carouselItemsDto = _mapper.Map<IEnumerable<CarouselItemDto>>(carouselItemEntities);
-        return Ok(_dataShaper.ShapeData(carouselItemsDto, carouselItemParameters.Fields));
+
+        var links = _carouselItemLinks.TryGenerateLinks(
+            carouselItemsDto, 
+            carouselItemParameters.Fields, 
+            HttpContext);
+
+        return links.HasLinks
+            ? Ok(links.LinkedEntities)
+            : Ok(links.ShapedEntities);
     }
 
     [HttpGet("Collection/({carouselItemIds})", Name = "GetCarouselItemsByIdsAsync")]

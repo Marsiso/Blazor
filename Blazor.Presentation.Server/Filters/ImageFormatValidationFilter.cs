@@ -1,4 +1,4 @@
-﻿using Blazor.Presentation.Server.Utilities;
+﻿using Blazor.Presentation.Server.Utility;
 using Blazor.Shared.Entities.DataTransferObjects;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;

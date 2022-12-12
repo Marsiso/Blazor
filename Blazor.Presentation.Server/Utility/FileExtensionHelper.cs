@@ -1,4 +1,4 @@
-﻿namespace Blazor.Presentation.Server.Utilities;
+﻿namespace Blazor.Presentation.Server.Utility;
 
 public static class FileExtensionHelper
 {

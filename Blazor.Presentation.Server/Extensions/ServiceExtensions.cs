@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace Blazor.Presentation.Server.Extensions;
 
@@ -59,6 +61,28 @@ internal static class ServiceExtensions
         .RequireClaim("country", "Czechia")
         .Build();
 
-    internal static IMvcBuilder AddCustomCSVFormatter(this IMvcBuilder builder) =>
+    internal static IMvcBuilder AddCustomCsvFormatter(this IMvcBuilder builder) =>
         builder.AddMvcOptions(config => config.OutputFormatters.Add(new CsvOutputFormatter()));
+    
+    internal static IServiceCollection AddCustomMediaTypes(this IServiceCollection services)
+    {
+        services.Configure<MvcOptions>(config =>
+        {
+            var newtonsoftJsonOutputFormatter =
+                config.OutputFormatters.OfType<NewtonsoftJsonOutputFormatter>()?.FirstOrDefault();
+            if (newtonsoftJsonOutputFormatter != null)
+            {
+                newtonsoftJsonOutputFormatter.SupportedMediaTypes.Add("application/vnd.utb.hateoas+json");
+            }
+
+            var xmlOutputFormatter = config.OutputFormatters.OfType<XmlDataContractSerializerOutputFormatter>()
+                .FirstOrDefault();
+            if (xmlOutputFormatter != null)
+            {
+                xmlOutputFormatter.SupportedMediaTypes.Add("application/vnd.utb.hateoas+xml");
+            }
+        });
+
+        return services;
+    }
 }

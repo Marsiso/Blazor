@@ -1,5 +1,6 @@
 using Blazor.Presentation.Server.Extensions;
 using Blazor.Presentation.Server.Filters;
+using Blazor.Presentation.Server.Utility;
 using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DataTransferObjects;
 using Blazor.Shared.Entities.Identity;
@@ -28,7 +29,7 @@ builder.Services.AddControllers(configure =>
 })
     .AddNewtonsoftJson()
     .AddXmlDataContractSerializerFormatters()
-    .AddCustomCSVFormatter();
+    .AddCustomCsvFormatter();
 
 builder.Services
     .Configure<ApiBehaviorOptions>(options =>
@@ -48,6 +49,9 @@ builder.Services
     .AddScoped<ImageFormatValidationFilter>()
     .AddScoped<ImageSizeValidationFilter>()
     .AddScoped<IDataShaper<CarouselItemDto>, DataShaper<CarouselItemDto>>()
+    .AddCustomMediaTypes()
+    .AddScoped<ValidateMediaTypeAttribute>()
+    .AddScoped<CarouselItemLinks>()
     .AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", opt =>
     {
