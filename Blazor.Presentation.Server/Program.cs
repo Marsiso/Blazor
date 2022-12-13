@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using Blazor.Presentation.Server.Extensions;
 using Blazor.Presentation.Server.Filters;
 using Blazor.Presentation.Server.Utility;
@@ -56,6 +57,9 @@ builder.Services
     .ConfigureVersioning()
     .ConfigureResponseCaching()
     .ConfigureHttpCacheHeaders()
+    .AddMemoryCache()
+    .ConfigureRateLimitingOptions()
+    .AddHttpContextAccessor()
     .AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", opt =>
     {
@@ -99,6 +103,7 @@ app
     })
     .UseResponseCaching()
     .UseHttpCacheHeaders()
+    .UseIpRateLimiting()
     .UseRouting()
     .UseAuthentication()
     .UseAuthorization()

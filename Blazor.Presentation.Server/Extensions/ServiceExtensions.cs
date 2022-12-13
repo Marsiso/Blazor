@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using AspNetCoreRateLimit;
 using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -103,9 +104,11 @@ internal static class ServiceExtensions
         return services;
     }
     
-    internal static IServiceCollection ConfigureResponseCaching(this IServiceCollection services) => services.AddResponseCaching();
+    internal static IServiceCollection ConfigureResponseCaching(this IServiceCollection services) => 
+        services.AddResponseCaching();
     
-    internal static IServiceCollection ConfigureHttpCacheHeaders(this IServiceCollection services) => services.AddHttpCacheHeaders(
+    internal static IServiceCollection ConfigureHttpCacheHeaders(this IServiceCollection services) => 
+        services.AddHttpCacheHeaders(
         (expirationOptions) =>
         {
             expirationOptions.MaxAge = 65; expirationOptions.CacheLocation = CacheLocation.Private;
@@ -113,4 +116,29 @@ internal static class ServiceExtensions
         {
             validationOptions.MustRevalidate = true;
         });
+    
+    internal static IServiceCollection ConfigureRateLimitingOptions(this IServiceCollection services)
+    {
+        var rateLimitRules = new List<RateLimitRule>
+        {
+            new RateLimitRule
+            {
+                Endpoint = "*",
+                Limit= 30,
+                Period = "5m"
+            }
+        };
+        
+        services.Configure<IpRateLimitOptions>(opt =>
+        {
+            opt.GeneralRules = rateLimitRules;
+        });
+        
+        services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+        services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+        services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+        services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+
+        return services;
+    }
 }
