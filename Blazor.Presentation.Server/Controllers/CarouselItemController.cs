@@ -20,18 +20,27 @@ public sealed class CarouselItemController : ControllerBase
     private readonly IRepositoryManager _repository;
     private readonly IMapper _mapper;
     private readonly CarouselItemLinks _carouselItemLinks;
-    private readonly IDataShaper<CarouselItemDto> _dataShaper;
 
-    public CarouselItemController(Serilog.ILogger logger, IRepositoryManager repository, IMapper mapper, CarouselItemLinks carouselItemLinks, IDataShaper<CarouselItemDto> dataShaper)
+    public CarouselItemController(Serilog.ILogger logger, IRepositoryManager repository, IMapper mapper, CarouselItemLinks carouselItemLinks)
     {
         _logger = logger;
         _repository = repository;
         _mapper = mapper;
         _carouselItemLinks = carouselItemLinks;
-        _dataShaper = dataShaper;
+    }
+
+    [HttpOptions(Name = "GetCarouselItemsOptions")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult GetCarouselItemsOptions()
+    {
+        Response.Headers.Add("Allow", "GET, OPTIONS, POST, DELETE, PUT");
+
+        return Ok();
     }
 
     [HttpGet(Name = "GetAllCarouselItemsAsync")]
+    [HttpHead(Name = "GetAllCarouselItemsHeadAsync")]
     //[Authorize(Policy = Policies.FromCzechia)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
