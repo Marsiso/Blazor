@@ -89,7 +89,7 @@ internal static class ServiceExtensions
         return services;
     }
     
-    public static IServiceCollection ConfigureVersioning(this IServiceCollection services)
+    internal static IServiceCollection ConfigureVersioning(this IServiceCollection services)
     {
         services.AddApiVersioning(opt =>
         {
@@ -101,4 +101,6 @@ internal static class ServiceExtensions
 
         return services;
     }
+    
+    internal static IServiceCollection ConfigureResponseCaching(this IServiceCollection services) => services.AddResponseCaching();
 }

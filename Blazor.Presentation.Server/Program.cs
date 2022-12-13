@@ -26,6 +26,7 @@ builder.Services.AddControllers(configure =>
 {
     configure.RespectBrowserAcceptHeader = true;
     configure.ReturnHttpNotAcceptable = true;
+    configure.CacheProfiles.Add("120SecondsDuration", new CacheProfile { Duration = 120 });
 })
     .AddNewtonsoftJson()
     //.AddXmlDataContractSerializerFormatters()
@@ -53,6 +54,7 @@ builder.Services
     .AddScoped<ValidateMediaTypeAttribute>()
     .AddScoped<CarouselItemLinks>()
     .ConfigureVersioning()
+    .ConfigureResponseCaching()
     .AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", opt =>
     {
@@ -94,6 +96,7 @@ app
     {
         ForwardedHeaders = ForwardedHeaders.All
     })
+    .UseResponseCaching()
     .UseRouting()
     .UseAuthentication()
     .UseAuthorization()

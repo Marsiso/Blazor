@@ -47,6 +47,7 @@ public sealed class CarouselItemController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ServiceFilter(typeof(ValidateMediaTypeAttribute))]
+    [ResponseCache(CacheProfileName = "120SecondsDuration")]
     public async Task<IActionResult> GetAllCarouselItemsAsync([FromQuery] CarouselItemParameters carouselItemParameters)
     {
         var carouselItemEntities = await _repository.CarouselItem
