@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Versioning;
@@ -103,4 +104,13 @@ internal static class ServiceExtensions
     }
     
     internal static IServiceCollection ConfigureResponseCaching(this IServiceCollection services) => services.AddResponseCaching();
+    
+    internal static IServiceCollection ConfigureHttpCacheHeaders(this IServiceCollection services) => services.AddHttpCacheHeaders(
+        (expirationOptions) =>
+        {
+            expirationOptions.MaxAge = 65; expirationOptions.CacheLocation = CacheLocation.Private;
+        }, (validationOptions) =>
+        {
+            validationOptions.MustRevalidate = true;
+        });
 }

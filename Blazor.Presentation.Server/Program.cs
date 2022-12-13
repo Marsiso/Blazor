@@ -55,6 +55,7 @@ builder.Services
     .AddScoped<CarouselItemLinks>()
     .ConfigureVersioning()
     .ConfigureResponseCaching()
+    .ConfigureHttpCacheHeaders()
     .AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", opt =>
     {
@@ -97,6 +98,7 @@ app
         ForwardedHeaders = ForwardedHeaders.All
     })
     .UseResponseCaching()
+    .UseHttpCacheHeaders()
     .UseRouting()
     .UseAuthentication()
     .UseAuthorization()
