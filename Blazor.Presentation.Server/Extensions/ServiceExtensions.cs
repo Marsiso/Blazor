@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Mvc.Versioning;
 
 namespace Blazor.Presentation.Server.Extensions;
 
@@ -83,6 +84,19 @@ internal static class ServiceExtensions
                 xmlOutputFormatter.SupportedMediaTypes.Add("application/vnd.utb.hateoas+xml");
                 xmlOutputFormatter .SupportedMediaTypes.Add("application/vnd.utb.apiroot+xml");
             }
+        });
+
+        return services;
+    }
+    
+    public static IServiceCollection ConfigureVersioning(this IServiceCollection services)
+    {
+        services.AddApiVersioning(opt =>
+        {
+            opt.ReportApiVersions = true;
+            opt.AssumeDefaultVersionWhenUnspecified = true;
+            opt.DefaultApiVersion = new ApiVersion(1, 0);
+            opt.ApiVersionReader = new HeaderApiVersionReader("api-version");
         });
 
         return services;

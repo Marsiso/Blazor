@@ -52,6 +52,7 @@ builder.Services
     .AddCustomMediaTypes()
     .AddScoped<ValidateMediaTypeAttribute>()
     .AddScoped<CarouselItemLinks>()
+    .ConfigureVersioning()
     .AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", opt =>
     {

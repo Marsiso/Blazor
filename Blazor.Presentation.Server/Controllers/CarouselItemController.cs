@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 
 namespace Blazor.Presentation.Server.Controllers;
 
+[ApiVersion("1.0")]
 [Route("api/[controller]")]
 [ApiController]
 public sealed class CarouselItemController : ControllerBase
