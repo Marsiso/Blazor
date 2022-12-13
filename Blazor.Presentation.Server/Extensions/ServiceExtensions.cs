@@ -73,6 +73,7 @@ internal static class ServiceExtensions
             if (newtonsoftJsonOutputFormatter != null)
             {
                 newtonsoftJsonOutputFormatter.SupportedMediaTypes.Add("application/vnd.utb.hateoas+json");
+                newtonsoftJsonOutputFormatter .SupportedMediaTypes.Add("application/vnd.utb.apiroot+json");
             }
 
             var xmlOutputFormatter = config.OutputFormatters.OfType<XmlDataContractSerializerOutputFormatter>()
@@ -80,6 +81,7 @@ internal static class ServiceExtensions
             if (xmlOutputFormatter != null)
             {
                 xmlOutputFormatter.SupportedMediaTypes.Add("application/vnd.utb.hateoas+xml");
+                xmlOutputFormatter .SupportedMediaTypes.Add("application/vnd.utb.apiroot+xml");
             }
         });
 

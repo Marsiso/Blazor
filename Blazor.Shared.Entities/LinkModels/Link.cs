@@ -14,4 +14,8 @@ public sealed class Link
         Rel = rel;
         Method = method;
     }
+
+    public Link()
+    {
+    }
 }
