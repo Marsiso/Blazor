@@ -12,6 +12,7 @@ using System.Text;
 namespace Blazor.Presentation.Server.Controllers;
 
 [ApiVersion("1.0")]
+[ApiExplorerSettings(GroupName = "v1")]
 [Route("api/CarouselItem/{carouselItemId:int}/[controller]")]
 [ApiController]
 public class ImageController : ControllerBase

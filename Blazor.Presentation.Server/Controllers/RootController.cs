@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Blazor.Presentation.Server.Controllers;
 
 [ApiVersion("1.0")]
+[ApiExplorerSettings(GroupName = "v1")]
 [Route("api")]
 [ApiController]
 public sealed class RootController : ControllerBase

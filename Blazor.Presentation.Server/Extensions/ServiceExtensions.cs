@@ -12,6 +12,7 @@ using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.OpenApi.Models;
 
 namespace Blazor.Presentation.Server.Extensions;
 
@@ -121,7 +122,7 @@ internal static class ServiceExtensions
     {
         var rateLimitRules = new List<RateLimitRule>
         {
-            new RateLimitRule
+            new()
             {
                 Endpoint = "*",
                 Limit= 30,
@@ -138,6 +139,29 @@ internal static class ServiceExtensions
         services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
         services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
         services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+
+        return services;
+    }
+    
+    public static IServiceCollection ConfigureSwagger(this IServiceCollection services) { 
+        services.AddSwaggerGen(s => {
+            s.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "Blazor API",
+                Version = "v1", 
+                Description = "Blazor API by UTB",
+                TermsOfService = new Uri("https://google.com/"),
+                Contact = new OpenApiContact
+                {
+                    Name = "Marek Olsak", Email = "m_olsak@utb.cz", Url = new Uri("https://facebook.com/"),
+                },
+                License = new OpenApiLicense
+                {
+                    Name = "Blazor API LICX", Url = new Uri("https://google.com/"),
+                }
+            });
+           //s.SwaggerDoc("v2", new OpenApiInfo { Title = "Blazor API", Version = "v2" });
+        });
 
         return services;
     }

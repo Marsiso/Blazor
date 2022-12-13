@@ -39,7 +39,7 @@ builder.Services
         options.SuppressModelStateInvalidFilter = true;
     })
     .AddEndpointsApiExplorer()
-    .AddSwaggerGen()
+    .ConfigureSwagger()
     .ConfigureSqlContext(builder.Configuration)
     .ConfigureCors()
     .ConfigureIISIntegration()
