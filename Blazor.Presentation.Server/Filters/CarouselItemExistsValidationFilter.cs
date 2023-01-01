@@ -33,7 +33,8 @@ public sealed class CarouselItemExistsValidationFilter : IAsyncActionFilter
         else
         {
             context.HttpContext.Items.Add(nameof(CarouselItemEntity), carouselItemEntity);
-            await next();
         }
+        
+        await next();
     }
 }

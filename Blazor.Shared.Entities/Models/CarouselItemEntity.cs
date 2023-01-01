@@ -18,4 +18,5 @@ public sealed class CarouselItemEntity
     public string Caption { get; set; }
 
     public ImageEntity Image { get; set; }
+    public ProductEntity Product { get; set; }
 }

@@ -143,7 +143,7 @@ internal static class ServiceExtensions
         return services;
     }
     
-    public static IServiceCollection ConfigureSwagger(this IServiceCollection services) { 
+    internal static IServiceCollection ConfigureSwagger(this IServiceCollection services) { 
         services.AddSwaggerGen(s => {
             s.SwaggerDoc("v1", new OpenApiInfo
             {
