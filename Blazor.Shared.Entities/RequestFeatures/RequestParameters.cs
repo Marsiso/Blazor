@@ -2,7 +2,7 @@
 
 public class RequestParameters
 {
-    private int _pageSize = 10;
+    private int _pageSize = 25;
     public int PageNumber { get; set; } = 1;
 
     public int PageSize

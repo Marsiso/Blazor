@@ -1,0 +1,79 @@
+﻿@page "/ManageCarouselItems"
+@using Blazor.Presentation.Client.Services;
+@using Blazor.Shared.Entities.DataTransferObjects;
+@using Blazor.Shared.Entities.Identity;
+@using Blazor.Shared.Entities.LinkModels
+@using Blazor.Shared.Entities.Models
+@using System.Net.Http.Headers
+@using System.Text.Json
+@using Blazor.Shared.Entities.RequestFeatures
+@inject CarouselItemService CarouselItemService
+@attribute [Authorize(Policy = Policies.FromFrance)]
+
+<PageTitle>Carousel items</PageTitle>
+
+<h1>Carousel items</h1>
+
+@if (_carouselItems == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Image Alternative Text</th>
+                <th>Caption Text</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var carouselItem in _carouselItems)
+            {
+                <tr>
+                    <td>@carouselItem.Id.ToString()</td>
+                    <td>@carouselItem.Alt</td>
+                    <td>@carouselItem.Caption</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+    <div class="row">
+        <div class="col-6 text-right">
+            <button class="btn btn-primary btn-sm" @onclick="PrevCarouselItemsPageAsync">Prev</button>
+        </div>
+        <div class="col-6 text-left">
+            <button class="btn btn-primary btn-sm" @onclick="NextCarouselItemsPageAsync">Next</button>
+        </div>
+    </div>
+}
+
+@code {
+    private IEnumerable<CarouselItemDto> _carouselItems;
+
+    private readonly CarouselItemParameters _carouselItemParameters = new CarouselItemParameters()
+    {
+        PageSize = 10,
+        PageNumber = 1
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _carouselItems = await CarouselItemService.GetAllAsync(_carouselItemParameters);
+    }
+
+    private async Task NextCarouselItemsPageAsync(MouseEventArgs arg)
+    {
+        _carouselItemParameters.PageNumber++;
+        _carouselItems = await CarouselItemService.GetAllAsync(_carouselItemParameters);
+    }
+
+    private async Task PrevCarouselItemsPageAsync(MouseEventArgs arg)
+    {
+        _carouselItemParameters.PageNumber--;
+        _carouselItems = await CarouselItemService.GetAllAsync(_carouselItemParameters);
+    }
+}
