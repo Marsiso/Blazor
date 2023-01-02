@@ -14,43 +14,6 @@ namespace Blazor.Presentation.Server.Identity.Identity;
 
 internal static class IdentityConfiguration
 {
-    private static List<TestUser> GetUsers() => new()
-    {
-        new TestUser
-        {
-            SubjectId = "{223C9865-03BE-4951-8911-740A438FCF9D}",
-            Username = "m_olsak@utb.cz",
-            Password = "Password9910014785",
-            Claims = new List<Claim>
-            {
-                new("given_name", "Marek"),
-                new(JwtClaimTypes.Name, "Marek Olsak"),
-                new("family_name", "Olsak"),
-                new("address", "Slopne"),
-                new("role", Roles.Visitor),
-                new("role", Roles.Manager),
-                new("role", Roles.Administrator),
-                new("country", "Czechia")
-            }
-        },
-        new TestUser
-        {
-            SubjectId = "{34119795-78A6-44C2-B128-30BFBC29139D}",
-            Username = "t_adamek@utb.cz",
-            Password = "Password9910014785",
-            Claims = new List<Claim>
-            {
-                new("given_name", "Tomas"),
-                new(JwtClaimTypes.Name, "Tomas Adamek"),
-                new("family_name", "Adamek"),
-                new("address", "Zlin"),
-                new("role", Roles.Visitor),
-                new("role", Roles.Manager),
-                new("country", "France")
-            }
-        }
-    };
-
     private static IEnumerable<IdentityResource> GetIdentityResources() => new List<IdentityResource>
     {
         new IdentityResources.OpenId(),
@@ -85,7 +48,6 @@ internal static class IdentityConfiguration
                 "roles",
                 "country"
             }
-            // RequireConsent = true
         }
     };
 
@@ -104,14 +66,6 @@ internal static class IdentityConfiguration
 
     internal static IServiceCollection ConfigureIdentityServices(this IServiceCollection services, IConfiguration configuration)
     {
-        /*services
-            .AddIdentityServer()
-            .AddInMemoryApiScopes(Config.GetApiScopes())
-            .AddInMemoryApiResources(Config.GetApiResources())
-            .AddInMemoryIdentityResources(Config.GetIdentityResources())
-            .AddTestUsers(Config.GetUsers())
-            .AddInMemoryClients(Config.GetClients())
-            .AddDeveloperSigningCredential();*/
         var migrationsAssembly = typeof(Program).GetTypeInfo().Assembly.GetName().Name;
         
         services

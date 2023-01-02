@@ -16,9 +16,9 @@
             <Authorized>
                 <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Carousel">
                     <DropDownMenuItems>
-                        <AuthorizeView Policy="@Policies.FromCzechia" Context="CzechUserContext">
+                        <AuthorizeView Policy="@Policies.FromFrance" Context="FrenchUserContext">
                             <Authorized>
-                                <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/FetchData"></DropDownMenuItem>
+                                <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/ManageCarouselItems"></DropDownMenuItem>
                             </Authorized>
                         </AuthorizeView>
                         <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right"></DropDownMenuItem>
@@ -32,7 +32,7 @@
             <Authorized>
                 <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Products">
                     <DropDownMenuItems>
-                        <AuthorizeView Policy="@Policies.FromCzechia" Roles="@Roles.Administrator" Context="CzechAdminUserContext">
+                        <AuthorizeView Policy="@Policies.FromCzechRepublic" Roles="@Roles.Administrator" Context="CzechAdminUserContext">
                             <Authorized>
                                 <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/FetchData"></DropDownMenuItem>
                             </Authorized>

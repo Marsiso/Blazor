@@ -59,12 +59,7 @@ internal static class ServiceExtensions
             });
         });
     }
-
-    internal static AuthorizationPolicy FromCzechiaPolicy() => new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .RequireClaim("country", "Czechia")
-        .Build();
-
+    
     internal static IMvcBuilder AddCustomCsvFormatter(this IMvcBuilder builder) =>
         builder.AddMvcOptions(config => config.OutputFormatters.Add(new CsvOutputFormatter()));
     

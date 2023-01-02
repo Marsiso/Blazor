@@ -26,7 +26,8 @@ builder.Services.AddHttpClient<CarouselItemService>(client => client.BaseAddress
 
 builder.Services.AddAuthorizationCore(options =>
 {
-    options.AddPolicy(Policies.FromCzechia, Policies.FromCzechiaPolicy());
+    options.AddPolicy(Policies.FromCzechRepublic, Policies.FromCzechRepublicPolicy());
+    options.AddPolicy(Policies.FromFrance, Policies.FromFrancePolicy());
 });
 
 builder.Services.AddOidcAuthentication(options =>

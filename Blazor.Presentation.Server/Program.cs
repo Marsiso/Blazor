@@ -70,7 +70,7 @@ builder.Services
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy(Policies.FromCzechia, ServiceExtensions.FromCzechiaPolicy());
+    options.AddPolicy(Policies.FromCzechRepublic, Policies.FromCzechRepublicPolicy());
 });
 
 logger.Information("Services have been registered");
