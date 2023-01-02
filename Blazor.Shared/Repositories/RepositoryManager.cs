@@ -8,6 +8,7 @@ public sealed class RepositoryManager : IRepositoryManager
     private readonly SqlContext _context;
     private ICarouselItemRepository _carouselItem;
     private IImageRepository _image;
+    private IUserRepository _user;
 
     public RepositoryManager(SqlContext context)
     {
@@ -17,6 +18,7 @@ public sealed class RepositoryManager : IRepositoryManager
     public ICarouselItemRepository CarouselItem => _carouselItem ??= new CarouselItemRepository(_context);
 
     public IImageRepository Image => _image ??= new ImageRepository(_context);
+    public IUserRepository User => _user ??= new UserRepository(_context);
 
     public async Task SaveAsync() => await _context.SaveChangesAsync();
 }

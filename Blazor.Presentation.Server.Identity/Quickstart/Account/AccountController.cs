@@ -17,6 +17,10 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Blazor.Presentation.Server.Identity.Validators;
+using Blazor.Shared.Abstractions;
+using Blazor.Shared.Entities.DataTransferObjects;
+using Blazor.Shared.Entities.Models;
 using Microsoft.AspNetCore.Identity;
 
 namespace IdentityServerHost.Quickstart.UI
@@ -35,12 +39,14 @@ namespace IdentityServerHost.Quickstart.UI
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
+        private readonly IRepositoryManager _repository;
 
         public AccountController(
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider,
-            IEventService events,
+            IEventService events, 
+            IRepositoryManager repository, 
             TestUserStore users = null)
         {
             // if the TestUserStore is not in DI, then we'll just use the global users collection
@@ -51,6 +57,7 @@ namespace IdentityServerHost.Quickstart.UI
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
             _events = events;
+            _repository = repository;
         }
 
         /// <summary>
@@ -111,10 +118,66 @@ namespace IdentityServerHost.Quickstart.UI
             if (ModelState.IsValid)
             {
                 // validate username/password against in-memory store
-                if (_users.ValidateCredentials(model.Username, model.Password))
+                var user = await _repository.User.GetUserAsync(model.Username, false);
+                //if (_users.ValidateCredentials(model.Username, model.Password))
+                if (user is not null)
                 {
-                    var user = _users.FindByUsername(model.Username);
-                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.SubjectId, user.Username, clientId: context?.Client.ClientId));
+                    //var user = _users.FindByUsername(model.Username);
+                    if (user.Password == model.Password)
+                    {
+                        await _events.RaiseAsync(new UserLoginSuccessEvent(user.Email, user.Id.ToString(), user.Email, clientId: context?.Client.ClientId));
+
+                        // only set explicit expiration here if user chooses "remember me". 
+                        // otherwise we rely upon expiration configured in cookie middleware.
+                        AuthenticationProperties props = null;
+                        if (AccountOptions.AllowRememberLogin && model.RememberLogin)
+                        {
+                            props = new AuthenticationProperties
+                            {
+                                IsPersistent = true,
+                                ExpiresUtc = DateTimeOffset.UtcNow.Add(AccountOptions.RememberMeLoginDuration)
+                            };
+                        };
+
+                        // issue authentication cookie with subject ID and username
+                        var isuser = new IdentityServerUser(user.Id.ToString())
+                        {
+                            DisplayName = user.Email,
+                            AdditionalClaims = ApplicationResourceOwnerPasswordValidator.GetUserClaims(user)
+                        };
+
+                        await HttpContext.SignInAsync(isuser, props);
+
+                        if (context != null)
+                        {
+                            if (context.IsNativeClient())
+                            {
+                                // The client is native, so this change in how to
+                                // return the response is for better UX for the end user.
+                                return this.LoadingPage("Redirect", model.ReturnUrl);
+                            }
+
+                            // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
+                            return Redirect(model.ReturnUrl);
+                        }
+
+                        // request for a local page
+                        if (Url.IsLocalUrl(model.ReturnUrl))
+                        {
+                            return Redirect(model.ReturnUrl);
+                        }
+                        else if (string.IsNullOrEmpty(model.ReturnUrl))
+                        {
+                            return Redirect("~/");
+                        }
+                        else
+                        {
+                            // user might have clicked on a malicious link - should be logged
+                            throw new Exception("invalid return URL");
+                        }
+                    }
+
+                    /*await _events.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.SubjectId, user.Username, clientId: context?.Client.ClientId));
 
                     // only set explicit expiration here if user chooses "remember me". 
                     // otherwise we rely upon expiration configured in cookie middleware.
@@ -162,7 +225,7 @@ namespace IdentityServerHost.Quickstart.UI
                     {
                         // user might have clicked on a malicious link - should be logged
                         throw new Exception("invalid return URL");
-                    }
+                    }*/
                 }
 
                 await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials", clientId:context?.Client.ClientId));
@@ -174,7 +237,54 @@ namespace IdentityServerHost.Quickstart.UI
             return View(vm);
         }
 
-        
+        [HttpGet]
+        public IActionResult UserInfo()
+        {
+            var claims = User.Claims.Select(claim => new { claim.Type, claim.Value });
+            return new JsonResult(claims);
+        }
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            /*var claims = User.Claims.Where(claim => claim.Type == "role");
+            if (claims.Any(claim => String.Equals(claim.Value, Blazor.Shared.Entities.Identity.Roles.Administrator,
+                    StringComparison.CurrentCultureIgnoreCase)))
+            {
+                return View();
+            }
+
+            return Redirect("~/");*/
+            var userForCreation = new UserForCreationDto();
+            return View(userForCreation);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register(UserForCreationDto user)
+        {
+            if (ModelState.IsValid)
+            {
+                var userEntity = new UserEntity
+                {
+                    Email = user.Email,
+                    Password = user.Password,
+                    Name = String.Format("{0} {1}", user.FirstName, user.LastName),
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Country = user.Country,
+                    Address = user.Address
+                };
+                
+                _repository.User.CreateUser(userEntity);
+                await _repository.SaveAsync();
+
+                return Redirect("~/");
+            }
+
+            return View(user);
+        }
+
+
         /// <summary>
         /// Show logout page
         /// </summary>

@@ -5,6 +5,7 @@ using IdentityServer4;
 using IdentityServer4.Models;
 using IdentityServer4.Test;
 using System.Security.Claims;
+using Blazor.Presentation.Server.Identity.Validators;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -115,8 +116,6 @@ internal static class IdentityConfiguration
         
         services
             .AddIdentityServer()
-            .AddDeveloperSigningCredential()
-            .AddTestUsers(GetUsers())
             .AddConfigurationStore(options =>
             {
                 options.ConfigureDbContext = builder => builder.UseSqlServer(configuration.GetConnectionString("Default"), b =>
@@ -126,7 +125,9 @@ internal static class IdentityConfiguration
             {
                 options.ConfigureDbContext = builder => builder.UseSqlServer(configuration.GetConnectionString("Default"), b =>
                     b.MigrationsAssembly(migrationsAssembly));
-            });
+            })
+            .AddResourceOwnerValidator<ApplicationResourceOwnerPasswordValidator>()
+            .AddDeveloperSigningCredential();
         
         services.AddControllersWithViews();
 

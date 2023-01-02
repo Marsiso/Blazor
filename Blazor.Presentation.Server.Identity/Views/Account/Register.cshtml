@@ -1,0 +1,60 @@
+﻿@model Blazor.Shared.Entities.DataTransferObjects.UserForCreationDto
+
+<div class="login-page">
+    <div class="lead">
+        <h1>Registration</h1>
+        <p>Please fill the form down below</p>
+    </div>
+
+    <partial name="_ValidationSummary" />
+
+    <div class="row">
+        @if (Model is not null)
+        {
+            <div class="col-sm-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Local Account</h2>
+                    </div>
+
+                    <div class="card-body">
+                        <form asp-route="Register">
+                            <div class="form-group">
+                                <label asp-for="Email"></label>
+                                <input class="form-control" placeholder="Username" asp-for="Email" autofocus type="email">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label asp-for="Password"></label>
+                                <input type="password" class="form-control" placeholder="Password" asp-for="Password" autocomplete="off">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label asp-for="FirstName"></label>
+                                <input type="text" class="form-control" placeholder="First Name" asp-for="FirstName" autocomplete="off">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label asp-for="LastName"></label>
+                                <input type="text" class="form-control" placeholder="Last Name" asp-for="LastName" autocomplete="off">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label asp-for="Address"></label>
+                                <input type="text" class="form-control" placeholder="Address" asp-for="Address" autocomplete="off">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label asp-for="Country"></label>
+                                <input type="text" class="form-control" placeholder="Country" asp-for="Country" autocomplete="off">
+                            </div>
+                           
+                            <button class="btn btn-primary" name="button" value="register">Register</button>
+                            <button class="btn btn-secondary" name="button" value="cancel">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
