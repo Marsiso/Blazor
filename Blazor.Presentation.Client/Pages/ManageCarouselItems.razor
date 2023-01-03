@@ -7,6 +7,7 @@
 @using System.Net.Http.Headers
 @using System.Text.Json
 @using Blazor.Shared.Entities.RequestFeatures
+@using Blazor.Shared.Entities.Responses
 @inject CarouselItemService CarouselItemService
 @attribute [Authorize(Policy = Policies.FromFrance)]
 
@@ -14,33 +15,36 @@
 
 <h1>Carousel items</h1>
 
-@if (_carouselItems == null)
+@if (_responseDetails == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <table class="table">
-        <thead>
+    <div class="row">
+        <table class="table">
+            <thead>
             <tr>
                 <th>ID</th>
                 <th>Image Alternative Text</th>
                 <th>Caption Text</th>
+                <th>Remove</th>
             </tr>
-        </thead>
-        <tbody>
-            @foreach (var carouselItem in _carouselItems)
+            </thead>
+            <tbody>
+            @foreach (var carouselItem in _responseDetails.Content.Value)
             {
                 <tr>
-                    <td>@carouselItem.Id.ToString()</td>
-                    <td>@carouselItem.Alt</td>
-                    <td>@carouselItem.Caption</td>
+                    <td>@if (carouselItem.ContainsKey("Id")) @carouselItem["Id"].ToString()</td>
+                    <td>@if (carouselItem.ContainsKey("Alt")) @carouselItem["Alt"].ToString()</td>
+                    <td>@if (carouselItem.ContainsKey("Caption")) @carouselItem["Caption"].ToString()</td>
+                    <td><button class="btn btn-primary btn-sm" @onclick="() => DeleteCarouselItem(carouselItem)">Delete</button></td>
                 </tr>
             }
-        </tbody>
-    </table>
-}
-
+            </tbody>
+        </table>
+    </div>
+    
     <div class="row">
         <div class="col-6 text-right">
             <button class="btn btn-primary btn-sm" @onclick="PrevCarouselItemsPageAsync">Prev</button>
@@ -49,10 +53,12 @@ else
             <button class="btn btn-primary btn-sm" @onclick="NextCarouselItemsPageAsync">Next</button>
         </div>
     </div>
+    
+    <p>@_responseDetails.ToString()</p>
 }
 
 @code {
-    private IEnumerable<CarouselItemDto> _carouselItems;
+    private ResponseDetails<LinkCollectionWrapper<Entity>> _responseDetails;
 
     private readonly CarouselItemParameters _carouselItemParameters = new CarouselItemParameters()
     {
@@ -62,18 +68,46 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _carouselItems = await CarouselItemService.GetAllAsync(_carouselItemParameters);
+        _responseDetails = await CarouselItemService.GetAllAsync(_carouselItemParameters);
     }
 
     private async Task NextCarouselItemsPageAsync(MouseEventArgs arg)
     {
         _carouselItemParameters.PageNumber++;
-        _carouselItems = await CarouselItemService.GetAllAsync(_carouselItemParameters);
+        _responseDetails = await CarouselItemService.GetAllAsync(_carouselItemParameters);
     }
 
     private async Task PrevCarouselItemsPageAsync(MouseEventArgs arg)
     {
         _carouselItemParameters.PageNumber--;
-        _carouselItems = await CarouselItemService.GetAllAsync(_carouselItemParameters);
+        _responseDetails  = await CarouselItemService.GetAllAsync(_carouselItemParameters);
     }
+
+    private async Task DeleteCarouselItem(Entity carouselItem)
+    {
+        if (carouselItem.ContainsKey("Id"))
+        {
+            if (!int.TryParse(carouselItem["Id"].ToString()!, out var id))
+            {
+                _responseDetails.Message = "Unique identifier for carousel item conversion failure";
+                return;
+            }
+            
+            var temp  = await CarouselItemService.DeleteAsync(id);
+            
+            if (temp.IsSuccess)
+            {
+                _responseDetails.Content.Value.Remove(carouselItem);
+            }
+            
+            _responseDetails = new ResponseDetails<LinkCollectionWrapper<Entity>>
+            {
+                Message = temp.Message,
+                IsResponse = temp.IsResponse,
+                IsSuccess = temp.IsSuccess,
+                Content = _responseDetails.Content
+            };
+        }
+    }
+
 }

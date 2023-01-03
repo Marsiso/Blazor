@@ -21,7 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Utility" />
     <Folder Include="wwwroot\sample-data\" />
   </ItemGroup>
 

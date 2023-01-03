@@ -3,7 +3,13 @@
 public class RequestParameters
 {
     private int _pageSize = 25;
-    public int PageNumber { get; set; } = 1;
+    private int _pageNumber = 1;
+
+    public int PageNumber
+    {
+        get => _pageNumber;
+        set => _pageNumber = value > 1 ? value : 1;
+    }
 
     public int PageSize
     {
