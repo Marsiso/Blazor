@@ -1,19 +1,18 @@
 ﻿@page "/ManageCarouselItems"
 @using Blazor.Presentation.Client.Services;
-@using Blazor.Shared.Entities.Constants
 @using Blazor.Shared.Entities.DataTransferObjects
 @using Blazor.Shared.Entities.Identity;
 @using Blazor.Shared.Entities.Models
 @using Blazor.Shared.Entities.RequestFeatures
 @using Polly
-@using Polly.Retry
 @using Syncfusion.Blazor.Buttons
 @using Syncfusion.Blazor.Inputs
 @using Syncfusion.Blazor.Grids
 @using SelectionType = Syncfusion.Blazor.Grids.SelectionType
-@using IHttpClientFactory = System.Net.Http.IHttpClientFactory
+@using System.Text.Json
+@using System.Text.Json.Serialization
 @inject CarouselItemService CarouselItemService
-@inject IHttpClientFactory HttpClientFactory
+@inject ImageService ImageService
 @attribute [Authorize(Policy = Policies.FromFrance)]
 
 <PageTitle>Carousel Items</PageTitle>
@@ -21,11 +20,11 @@
 <h1>Management</h1>
 
 <h2>Create Carousel Item</h2>
-@if (_carouselItemForCreation?.Image != null)
+@if (_carouselItemForCreation is not null)
 {
     <div class="row">
         <div class="col-4">
-            @if (_carouselItemForCreation.Image.ImageFile is null)
+            @if (_carouselItemForCreation.Image?.ImageFile is null)
             {
                 <figure class="img-container">
                     <img src="images/image-placeholder.jpg" alt="Image Place Holder" style="height:100%;width:100%;" />
@@ -41,17 +40,38 @@
             }
         </div>
         <div class="col-8">
-            <SfTextBox Value="@_carouselItemForCreation.Alt" CssClass="mb-1" Placeholder="Image Alternative Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
-            <SfTextBox Value="@_carouselItemForCreation.Caption" CssClass="mb-1" Placeholder="Image Caption Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
-            <SfTextBox Value="@_carouselItemForCreation.Image.FileName" CssClass="mb-2" Placeholder="Image File Name" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
-            <div class="flex-row">
-                <SfButton CssClass="e-outline" Content="Create" @onclick="@OnCreateCarouselItemButtonClick"></SfButton>
-            </div>
+            @*<EditForm Model="@_carouselItemForCreation" OnValidSubmit="OnValidSubmitAsync">*@
+                @*<DataAnnotationsValidator />
+                <div class="form-group">
+                    <label for="image-alternative-text">Image Alternative Text</label>
+                    <SfTextBox ID="image-alternative-text" Value="@_carouselItemForCreation.Alt" ShowClearButton=true></SfTextBox>
+                    <ValidationMessage For="@(() => _carouselItemForCreation.Alt)"></ValidationMessage>
+                </div>
+                        
+                <div class="form-group mb-2">   
+                        <label for="image-caption-text">Image Caption Text</label>
+                        <SfTextBox ID="image-caption-text" Value="@_carouselItemForCreation.Caption" ShowClearButton=true></SfTextBox>
+                        <ValidationMessage For="@(() => _carouselItemForCreation.Caption)"></ValidationMessage>                    
+                </div>*@
+                
+                @*<div class="form-group">   
+                       <label for="image-file-name">Image File Name</label>
+                       <SfTextBox ID="image-file-name" Value="@_carouselItemForCreation.Image.FileName" ShowClearButton=true></SfTextBox>
+                       <ValidationMessage For="@(() => _carouselItemForCreation.Image.FileName)"></ValidationMessage>                                 
+                </div>*@
+        
+                <SfTextBox @bind-Value="_carouselItemForCreation.Alt" CssClass="mb-1" Placeholder="Image Alternative Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
+                <SfTextBox @bind-Value="_carouselItemForCreation.Caption" CssClass="mb-1" Placeholder="Image Caption Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
+                @*<SfTextBox Value="@_carouselItemForCreation.Image.FileName" CssClass="mb-2" Placeholder="Image File Name" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>*@
+            
+                <SfButton CssClass="e-outline" Content="Create" @onclick="@OnValidSubmitAsync"></SfButton>
+                @*<SfButton CssClass="e-outline">Submit</SfButton>*@
+            @*</EditForm>*@
         </div>
     </div>
 }
 
-<h2>Selected Carousel Item</h2>
+<h2 class="mt-3">Selected Carousel Item</h2>
 @if (_selectedRow is not null)
 {
     <div class="row">
@@ -73,8 +93,8 @@
         </div>
         <div class="col-8">
             <SfTextBox Value="@_selectedRow.Identifier.ToString()" CssClass="mb-1" Placeholder="Unique Identifier" FloatLabelType="@FloatLabelType.Auto" Enabled="false"></SfTextBox>
-            <SfTextBox Value="@_selectedRow.ImageAlternativeText" CssClass="mb-1" Placeholder="Image Alternative Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
-            <SfTextBox Value="@_selectedRow.ImageCaption" CssClass="mb-2" Placeholder="Image Caption Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
+            <SfTextBox @bind-Value="_selectedRow.ImageAlternativeText" CssClass="mb-1" Placeholder="Image Alternative Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
+            <SfTextBox @bind-Value="_selectedRow.ImageCaption" CssClass="mb-2" Placeholder="Image Caption Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
             <div class="flex-row">
                 <SfButton CssClass="e-outline" Content="Delete" @onclick="OnDeleteSelectedRowButtonClick"></SfButton>
                 <SfButton CssClass="e-outline" Content="Update" @onclick="OnUpdateSelectedRowButtonClick"></SfButton>
@@ -87,7 +107,7 @@ else
     <p>There is not selected carousel item to display ...</p>
 }
 
-<h2>Carousel Items Table</h2>
+<h2 class="mt-3">Carousel Items Table</h2>
 @if (_dataGridRows is not null)
 {
     <div class="row">
@@ -110,18 +130,13 @@ else
 
 @code {
     private SfGrid<DataGridRow> _dataGrid;
-    private SfButton _deleteSelectedRowButton;
     private List<DataGridRow> _dataGridRows;
     private DataGridRow _selectedRow;
 
     private readonly CarouselItemForCreationDto _carouselItemForCreation = new()
     {
         Alt = String.Empty,
-        Caption = String.Empty,
-        Image = new ImageForCreationDto
-        {
-            FileName = String.Empty
-        }
+        Caption = String.Empty
     };
 
     public sealed class DataGridRow
@@ -151,7 +166,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         {
-            PolicyResult<List<Entity>> policyResult = await CarouselItemService.GetAllWithoutLinksAsync(_carouselItemParameters);
+            PolicyResult<List<Entity>> policyResult = await CarouselItemService.GetAllAsync(_carouselItemParameters);
             if (policyResult.Outcome == OutcomeType.Successful)
             {
                 _dataGridRows = policyResult.Result.Select(entity => new DataGridRow
@@ -177,20 +192,11 @@ else
 
     private async Task OnDeleteSelectedRowButtonClick()
     {
-        var responseDetails = await CarouselItemService.DeleteAsync(_selectedRow.Identifier);
-        if (responseDetails.IsSuccess)
+        var policyResult = await CarouselItemService.DeleteAsync(_selectedRow.Identifier);
+        if (policyResult.Outcome == OutcomeType.Successful && _dataGridRows.Remove(_selectedRow))
         {
-            if (_dataGridRows.Remove(_selectedRow))
-            {
-                _selectedRow = _dataGridRows.FirstOrDefault();
-                await _dataGrid.GoToPageAsync(1);
-            }
-
-            await _dataGrid.Refresh();
-        }
-        else
-        {
-            await _dataGrid.Refresh();
+            _selectedRow = _dataGridRows.FirstOrDefault();
+            await _dataGrid.GoToPageAsync(1);
         }
     }
     
@@ -200,8 +206,31 @@ else
         return Task.CompletedTask;
     }
 
-    public Task OnCreateCarouselItemButtonClick(MouseEventArgs e)
+    private async Task OnValidSubmitAsync()
     {
-        return Task.CompletedTask;
+        var policyResult = await CarouselItemService.PostAsync(_carouselItemForCreation);
+        if (policyResult.Outcome == OutcomeType.Successful)
+        {
+            var contentStream = await policyResult.Result.Content.ReadAsStreamAsync();
+            var carouselItem = await JsonSerializer.DeserializeAsync<CarouselItemDto>(
+                contentStream,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+
+            if (carouselItem is not null)
+            {
+                _dataGridRows.Add(new DataGridRow
+                {
+                    Identifier = carouselItem.Id,
+                    ImageAlternativeText = carouselItem.Alt,
+                    ImageCaption = carouselItem.Caption
+                });
+                
+                await _dataGrid.Refresh();
+            }
+        }
     }
 }

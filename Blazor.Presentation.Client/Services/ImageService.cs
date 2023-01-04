@@ -6,11 +6,18 @@ using Polly;
 
 namespace Blazor.Presentation.Client.Services;
 
-public static class ImageService
+public sealed class ImageService
 {
-    public static async Task<PolicyResult<ImageDto>> GetImageAsync(int carouselItemId)
+    private readonly IHttpClientFactory _httpClientFactory;
+
+    public ImageService(IHttpClientFactory httpClientFactory)
     {
-        HttpClient httpClient = new HttpClient();
+        _httpClientFactory = httpClientFactory;
+    }
+
+    public async Task<PolicyResult<ImageDto>> GetImageAsync(int carouselItemId)
+    {
+        var httpClient = _httpClientFactory.CreateClient("Default");
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         var retryPolicy = Policy<ImageDto>
@@ -18,6 +25,6 @@ public static class ImageService
             .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
         
         return await retryPolicy.ExecuteAndCaptureAsync(async () => await httpClient.GetFromJsonAsync<ImageDto>(
-            $"https://localhost:11001/api/CarouselItem/{carouselItemId}/Image"));
+            $"CarouselItem/{carouselItemId}/Image"));
     }
 }

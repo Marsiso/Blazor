@@ -13,16 +13,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-builder.Services.AddHttpClient<CarouselItemService>(client => client.BaseAddress = new Uri("https://localhost:11001/"))
-    .AddHttpMessageHandler(handlerConfig =>
-    {
-        AuthorizationMessageHandler handler = handlerConfig.GetService<AuthorizationMessageHandler>().ConfigureHandler(
-            authorizedUrls: new[] { "https://localhost:11001" },
-            scopes: new[] { "BlazorAPI" }
-        );
 
-        return handler;
-    });
 builder.Services.AddHttpClient("Default", client => client.BaseAddress = new Uri("https://localhost:11001/api/"))
     .AddHttpMessageHandler(handlerConfig =>
     {
@@ -47,6 +38,7 @@ builder.Services.AddOidcAuthentication(options =>
 });
 
 builder.Services.AddSingleton<CarouselItemService>();
+builder.Services.AddSingleton<ImageService>();
 builder.Services.AddSyncfusionBlazor();
 
 await builder.Build().RunAsync();

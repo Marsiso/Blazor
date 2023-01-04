@@ -8,6 +8,8 @@ using Blazor.Shared.Entities.LinkModels;
 using Blazor.Shared.Entities.Models;
 using Blazor.Shared.Entities.RequestFeatures;
 using Blazor.Shared.Entities.Responses;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json;
 using Polly;
 using Polly.Retry;
@@ -23,9 +25,9 @@ public sealed class CarouselItemService
         _httpClientFactory = httpClientFactory;
     }
 
-    public async Task<PolicyResult<List<Entity>>> GetAllWithoutLinksAsync(CarouselItemParameters carouselItemParameters)
+    public async Task<PolicyResult<List<Entity>>> GetAllAsync(CarouselItemParameters carouselItemParameters)
     {
-        var httpClient = _httpClientFactory.CreateClient(nameof(CarouselItemService));
+        var httpClient = _httpClientFactory.CreateClient("Default");
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         AsyncRetryPolicy<List<Entity>> retryPolicy = Policy<List<Entity>>
@@ -33,14 +35,16 @@ public sealed class CarouselItemService
             .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
 
         return await retryPolicy.ExecuteAndCaptureAsync(async () => await httpClient.GetFromJsonAsync<List<Entity>>(
-            $"api/CarouselItem?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}"));
+            $"CarouselItem?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}"));
     }
 
-    public async ValueTask<ResponseDetails<LinkCollectionWrapper<Entity>>> GetAllWithLinksAsync(CarouselItemParameters carouselItemParameters)
+    [Obsolete]
+    public async ValueTask<ResponseDetails<LinkCollectionWrapper<Entity>>> GetAllWithLinksAsync(
+        CarouselItemParameters carouselItemParameters)
     {
         var responseDetails = new ResponseDetails<LinkCollectionWrapper<Entity>> { Content = new LinkCollectionWrapper<Entity>() };
         
-        var httpClient = _httpClientFactory.CreateClient(nameof(CarouselItemService));
+        var httpClient = _httpClientFactory.CreateClient("Default");
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.utb.hateoas+json"));
         
@@ -53,7 +57,7 @@ public sealed class CarouselItemService
             try
             {
                 var response = await httpClient.GetAsync(
-                    $"api/CarouselItem?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}",
+                    $"CarouselItem?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}",
                     HttpCompletionOption.ResponseHeadersRead);
 
                 responseDetails.IsResponse = true;
@@ -99,11 +103,13 @@ public sealed class CarouselItemService
         });
     }
     
-    public async ValueTask<ResponseDetails<LinkCollectionWrapper<Entity>>> GetWithLinksAsync(int carouselItemId, CarouselItemParameters carouselItemParameters)
+    [Obsolete]
+    public async ValueTask<ResponseDetails<LinkCollectionWrapper<Entity>>> GetWithLinksAsync(int carouselItemId,
+        CarouselItemParameters carouselItemParameters)
     {
         var responseDetails = new ResponseDetails<LinkCollectionWrapper<Entity>> { IsResponse = true, Content = new LinkCollectionWrapper<Entity>() };
         
-        var httpClient = _httpClientFactory.CreateClient(nameof(CarouselItemService));
+        var httpClient = _httpClientFactory.CreateClient("Default");
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.utb.hateoas+json"));
         
@@ -116,7 +122,7 @@ public sealed class CarouselItemService
             try
             {
                 var response = await httpClient.GetAsync(
-                    $"api/CarouselItem/{carouselItemId}?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}",
+                    $"CarouselItem/{carouselItemId}?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}",
                     HttpCompletionOption.ResponseHeadersRead);
 
                 responseDetails.IsResponse = true;
@@ -164,75 +170,24 @@ public sealed class CarouselItemService
         });
     }
     
-    public async ValueTask<ResponseDetails<int>> DeleteAsync(int id)
+    public async Task<PolicyResult<HttpResponseMessage>> DeleteAsync(int carouselItemId)
     {
-        var responseDetails = new ResponseDetails<int> { Content = id };
-        var httpClient = _httpClientFactory.CreateClient(nameof(CarouselItemService));
+        var httpClient = _httpClientFactory.CreateClient("Default");
         
-        var retryPolicy = Policy<ResponseDetails<int>>
-            .Handle<HttpRequestException>()
+        AsyncRetryPolicy retryPolicy = Policy.Handle<HttpRequestException>()
             .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
 
-        return await retryPolicy.ExecuteAsync(async () =>
-        {
-            try
-            {
-                var response = await httpClient.DeleteAsync($"api/CarouselItem/{id}", CancellationToken.None);
-                
-                responseDetails.IsResponse = true;
-                if (response.IsSuccessStatusCode)
-                {
-                    responseDetails.IsSuccess = true;
-                    
-                    return responseDetails;
-                }
-
-                responseDetails.Message = "Http request has not been successful";
-            }
-            catch (TaskCanceledException )
-            {
-                responseDetails.Message = "Http client connection timeout failure";
-            }
-            
-            return responseDetails;
-        });
+        return await retryPolicy.ExecuteAndCaptureAsync(async () =>
+            await httpClient.DeleteAsync($"CarouselItem/{carouselItemId}"));
     }
     
-    public async ValueTask<ResponseDetails<CarouselItemForCreationDto>> PostAsync(CarouselItemForCreationDto carouselItemForCreationDto)
+    public async Task<PolicyResult<HttpResponseMessage>> PostAsync(CarouselItemForCreationDto carouselItemForCreationDto)
     {
-        var responseDetails = new ResponseDetails<CarouselItemForCreationDto> { IsResponse = true, Content = carouselItemForCreationDto };
-        var httpClient = _httpClientFactory.CreateClient(nameof(CarouselItemService));
-        var retryPolicy = Policy<ResponseDetails<CarouselItemForCreationDto>>
-            .Handle<HttpRequestException>()
+        var httpClient = _httpClientFactory.CreateClient("Default");
+        AsyncRetryPolicy retryPolicy = Policy.Handle<HttpRequestException>()
             .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
 
-        return await retryPolicy.ExecuteAsync(async () =>
-        {
-            try
-            {
-                var request = new HttpRequestMessage(HttpMethod.Post,"api/CarouselItem/")
-                {
-                    Content = JsonContent.Create(carouselItemForCreationDto)
-                };
-
-                var response = await httpClient.SendAsync(request);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    responseDetails.IsSuccess = true;
-                    responseDetails.Message = "Carousel item successfully created";
-                    return responseDetails;
-                }
-
-                responseDetails.Message = "Http request has not been successful";
-            }
-            catch (TaskCanceledException )
-            {
-                responseDetails.Message = "Http client connection timeout failure";
-                responseDetails.IsResponse = false;
-            }
-            
-            return responseDetails;
-        });
+        return await retryPolicy.ExecuteAndCaptureAsync(async () =>
+            await httpClient.PostAsJsonAsync("CarouselItem/", carouselItemForCreationDto));
     }
 }
