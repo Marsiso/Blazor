@@ -4,6 +4,7 @@
 @using Blazor.Shared.Entities.Models
 @using Blazor.Shared.Entities.RequestFeatures
 @using Polly
+@using ChangeEventArgs = Microsoft.AspNetCore.Components.ChangeEventArgs
 @inject CarouselItemService CarouselItemService
 @inject ImageService ImageService
 @attribute [Authorize(Policy = Policies.FromFrance)]
@@ -28,15 +29,20 @@ else
                         </thead>
                         <tbody>
                         <tr>
-                                <td></td>
-                                <td>
+                                <td style="width: 33%">
+                                        <div class="input-group mb-3">
+                                                <span class="input-group-text" id="search-term-input">Search Term</span>
+                                                <input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="search-term-input" @onchange="OnSearchTermChanged">
+                                        </div>
+                                </td>
+                                <td style="width: auto">
                                         <div class="flex-row">
                                                 <button class="btn btn-sm" @onclick="OnPrevCarouselItemsPage">Prev</button>
                                                 <button class="btn btn-sm active">@CarouselItemParameters.PageNumber</button>
                                                 <button class="btn btn-sm" @onclick="OnNextCarouselItemsPage">Next</button>
                                         </div>
                                 </td>
-                                <td></td>
+                                <td style="width: 33%"></td>
                         </tr>
                         </tbody>
                 </table>
@@ -93,20 +99,46 @@ else
                 PageNumber = 1
         };
 
-        int text;
+        protected override async Task OnInitializedAsync() => await RefreshCarouselItems();
 
-        protected override async Task OnInitializedAsync()
+        private async Task RefreshCarouselItems()
         {
                 var policyResponse = await CarouselItemService.GetAllAsync(CarouselItemParameters);
                 if (policyResponse.Outcome == OutcomeType.Successful &&
-                    policyResponse.Result is not null)
+                    policyResponse.Result is not null && policyResponse.Result.Count > 0)
                 {
-                        CarouselItems = policyResponse.Result;
-                        foreach (var carouselItem in CarouselItems)
+                        var entities = policyResponse.Result;
+                        if (CarouselItems is not null && CarouselItems.Count > 0)
+                        {
+                                foreach (var entity in entities)
+                                {
+                                        var match = CarouselItems.FirstOrDefault(x => x["Id"].ToString() == entity["Id"].ToString());
+                                        if (match is not null)
+                                        {
+                                                entity.Add("Src", match["Src"].ToString());
+                                        }
+                                        else
+                                        {
+                                                var image = await DownloadImageAsync(Int32.Parse(entity["Id"].ToString()!));
+                                                entity.Add("Src", image);
+                                        }
+                                }       
+                        }
+                        else
+                        {
+                                foreach (var entity in entities)
+                                {
+                                        var image = await DownloadImageAsync(Int32.Parse(entity["Id"].ToString()!));
+                                        entity.Add("Src", image);
+                                }
+                        }
+                        
+                        CarouselItems = entities;
+                        /*foreach (var carouselItem in CarouselItems)
                         {
                                 var image = await DownloadImageAsync(Int32.Parse(carouselItem["Id"].ToString()!));
                                 carouselItem.Add("Src", image);
-                        }
+                        }*/
                 }
         }
 
@@ -179,4 +211,14 @@ else
                                 .ToList();
                 }
         }
+
+        private async Task OnSearchTermChanged(ChangeEventArgs arg)
+        {
+                if (arg.Value != null)
+                {
+                        CarouselItemParameters.SearchTerm = arg.Value.ToString();
+                        await RefreshCarouselItems();
+                }
+        }
+
 }
