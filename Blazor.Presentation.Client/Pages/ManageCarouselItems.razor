@@ -24,15 +24,15 @@ else
                         <tr>
                                 <th scope="col">Search</th>
                                 <th scope="col">Paging</th>
-                                <th scope="col">Ordering</th>
+                                <th scope="col">Filtering</th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr>
                                 <td style="width: 33%">
-                                        <div class="input-group mb-3">
+                                        <div class="input-group">
                                                 <span class="input-group-text" id="search-term-input">Search Term</span>
-                                                <input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="search-term-input" @onchange="OnSearchTermChanged">
+                                                <input type="text" class="form-control" placeholder="Expression" aria-label="Expression" aria-describedby="search-term-input" @onchange="OnSearchTermChanged">
                                         </div>
                                 </td>
                                 <td style="width: auto">
@@ -42,7 +42,15 @@ else
                                                 <button class="btn btn-sm" @onclick="OnNextCarouselItemsPage">Next</button>
                                         </div>
                                 </td>
-                                <td style="width: 33%"></td>
+                                <td style="width: 33%">
+                                        <div class="input-group">
+                                                <span class="input-group-text" id="filter-by-id-input">Unique Identifier Minimal Value</span>
+                                                <input type="text" class="form-control" placeholder="Unique Identifier" aria-label="Unique Identifier" aria-describedby="filter-by-id-input" @onchange="OnMinimalIdChanged">
+                                                
+                                                <span class="input-group-text" id="filter-by-id-input">Maximal Value</span>
+                                                <input type="text" class="form-control" placeholder="Unique Identifier" aria-label="Unique Identifier" aria-describedby="filter-by-id-input" @onchange="OnMaximalIdChanged">
+                                        </div>
+                                </td>
                         </tr>
                         </tbody>
                 </table>
@@ -53,9 +61,9 @@ else
                                 <thead class="table-light">
                                 <tr>
                                         <th scope="col">Image</th>
-                                        <th scope="col">Unique Identifier</th>
-                                        <th scope="col">Image Alternative Text</th>
-                                        <th scope="col">Image Caption Text</th>
+                                        <th scope="col" @onclick="() => OnOrderByTermSelected(nameof(CarouselItemEntity.Id))" style="cursor: pointer">Unique Identifier</th>
+                                        <th scope="col" @onclick="() => OnOrderByTermSelected(nameof(CarouselItemEntity.Alt))" style="cursor: pointer">Image Alternative Text</th>
+                                        <th scope="col" @onclick="() => OnOrderByTermSelected(nameof(CarouselItemEntity.Caption))" style="cursor: pointer">Image Caption Text</th>
                                         <th scope="col">Operation</th>
                                         <th scope="col">Operation</th>
                                 </tr>
@@ -134,11 +142,6 @@ else
                         }
                         
                         CarouselItems = entities;
-                        /*foreach (var carouselItem in CarouselItems)
-                        {
-                                var image = await DownloadImageAsync(Int32.Parse(carouselItem["Id"].ToString()!));
-                                carouselItem.Add("Src", image);
-                        }*/
                 }
         }
 
@@ -221,4 +224,53 @@ else
                 }
         }
 
+        private async Task OnOrderByTermSelected(string orderBy)
+        {
+                CarouselItemParameters.OrderBy = orderBy;
+                await RefreshCarouselItems();
+        }
+
+        private async Task OnMinimalIdChanged(ChangeEventArgs arg)
+        {
+                if (arg.Value != null)
+                {
+                        var str = arg.Value.ToString();
+                        if (!String.IsNullOrEmpty(str) && Int32.TryParse(arg.Value.ToString(), out var carouselItemId))
+                        {
+                                CarouselItemParameters.MinId = carouselItemId;
+                        }
+                        else
+                        {
+                                CarouselItemParameters.MinId = 0;
+                        }
+                }
+                else
+                {
+                        CarouselItemParameters.MinId = 0;
+                }
+                
+                await RefreshCarouselItems();
+        }
+
+        private async Task OnMaximalIdChanged(ChangeEventArgs arg)
+        {
+                if (arg.Value != null)
+                {
+                        var str = arg.Value.ToString();
+                        if (!String.IsNullOrEmpty(str) && Int32.TryParse(arg.Value.ToString(), out var carouselItemId))
+                        {
+                                CarouselItemParameters.MaxId = carouselItemId;
+                        }
+                        else
+                        {
+                                CarouselItemParameters.MaxId = Int32.MaxValue;
+                        }
+                }
+                else
+                {
+                        CarouselItemParameters.MaxId = Int32.MaxValue;
+                }
+                
+                await RefreshCarouselItems();
+        }
 }
