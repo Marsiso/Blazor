@@ -7,6 +7,7 @@
 @using ChangeEventArgs = Microsoft.AspNetCore.Components.ChangeEventArgs
 @inject CarouselItemService CarouselItemService
 @inject ImageService ImageService
+@inject NavigationManager NavigationManager
 @attribute [Authorize(Policy = Policies.FromFrance)]
 
 <PageTitle>Carousel Items</PageTitle>
@@ -89,7 +90,7 @@ else
                                                 <td>@CarouselItems[index]["Id"]</td>
                                                 <td>@CarouselItems[index]["Alt"]</td>
                                                 <td>@CarouselItems[index]["Caption"]</td>
-                                                <td><button class="btn btn-sm">Edit</button></td>
+                                                <td><button class="btn btn-sm" @onclick="() => OnEditCarouselItemClick(carouselItemId)">Edit</button></td>
                                                 <td><button class="btn btn-sm" @onclick="() => OnDeleteCarouselItemClick(carouselItemId)">Delete</button></td>
                                         </tr>
                                 }
@@ -273,4 +274,7 @@ else
                 
                 await RefreshCarouselItems();
         }
+
+        private void OnEditCarouselItemClick(int carouselItemId) => NavigationManager.NavigateTo($"/ManageCarouselItems/Edit/{carouselItemId}");
+
 }

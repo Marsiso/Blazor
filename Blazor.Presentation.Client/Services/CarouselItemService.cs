@@ -1,16 +1,9 @@
 ﻿using System.Net.Http.Headers;
 using Blazor.Shared.Entities.DataTransferObjects;
 using System.Net.Http.Json;
-using System.Text.Json.Serialization;
-using Blazor.Presentation.Client.Utility;
 using Blazor.Shared.Entities.Constants;
-using Blazor.Shared.Entities.LinkModels;
 using Blazor.Shared.Entities.Models;
 using Blazor.Shared.Entities.RequestFeatures;
-using Blazor.Shared.Entities.Responses;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Newtonsoft.Json;
 using Polly;
 using Polly.Retry;
 
@@ -51,6 +44,28 @@ public sealed class CarouselItemService
                 : new List<Entity>();
         });
     }
+    
+    public async Task<PolicyResult<Entity>> GetAsync(int carouselItemId, CarouselItemParameters carouselItemParameters = null)
+    {
+        var httpClient = _httpClientFactory.CreateClient("Default");
+        httpClient.DefaultRequestHeaders.Accept.Clear();
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        AsyncRetryPolicy<Entity> retryPolicy = Policy<Entity>
+            .Handle<HttpRequestException>()
+            .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
+
+        return await retryPolicy.ExecuteAndCaptureAsync(async () =>
+        {
+            var requestUri = $"CarouselItem/{carouselItemId}";
+            
+            var httpResponse = await httpClient.GetAsync(requestUri);
+
+            if (!httpResponse.IsSuccessStatusCode) return new Entity();
+            
+            var responseResult = await httpResponse.Content.ReadFromJsonAsync<List<Entity>>();
+            return responseResult.FirstOrDefault() ?? new Entity();
+        });
+    }
 
     public async Task<PolicyResult<HttpResponseMessage>> DeleteAsync(int carouselItemId)
     {
@@ -73,7 +88,7 @@ public sealed class CarouselItemService
             await httpClient.PostAsJsonAsync("CarouselItem/", carouselItemForCreationDto));
     }
     
-    public async Task<PolicyResult<HttpResponseMessage>> UpdateAsync(int carouselItemId, CarouselItemForCreationDto carouselItemForCreationDto)
+    public async Task<PolicyResult<HttpResponseMessage>> UpdateAsync(int carouselItemId, CarouselItemForUpdateDto carouselItemForCreationDto)
     {
         var httpClient = _httpClientFactory.CreateClient("Default");
         AsyncRetryPolicy retryPolicy = Policy.Handle<HttpRequestException>()

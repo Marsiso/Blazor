@@ -5,7 +5,6 @@
 @using Syncfusion.Blazor.Buttons
 @using Syncfusion.Blazor.SplitButtons
 @inject NavigationManager NavigationManager
-@inject NavigationManager Navigation
 @inject SignOutSessionStateManager SignOutManager
 @attribute [Authorize]
 
@@ -82,12 +81,12 @@
     private async Task BeginSignOut(MouseEventArgs args)
     {
         await SignOutManager.SetSignOutState();
-        Navigation.NavigateTo("authentication/logout");
+        NavigationManager.NavigateTo("authentication/logout");
     }
 
     private void BeginLogin()
     {
-        Navigation.NavigateTo("authentication/login");
+        NavigationManager.NavigateTo("authentication/login");
     }
 }
 

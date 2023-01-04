@@ -1,0 +1,96 @@
+﻿@page "/ManageCarouselItems/Edit/{CarouselItemId:int}"
+@using Blazor.Presentation.Client.Services
+@using Blazor.Shared.Entities.DataTransferObjects
+@using Blazor.Shared.Entities.Identity
+@using Blazor.Shared.Entities.Models
+@using Polly
+@inject CarouselItemService CarouselItemService
+@inject ImageService ImageService
+@inject NavigationManager NavigationManager
+@attribute [Authorize(Policy = Policies.FromFrance)]
+
+<h1>Editor</h1>
+<div class="row">
+    <EditForm Model="_carouselItem" OnValidSubmit="OnValidSubmit">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <ValidationSummary></ValidationSummary>
+    
+        <div class="row">
+            <div class="col-4">
+                <figure class="img-container">
+                        @if (!String.IsNullOrEmpty(_imageSource))
+                        {
+                                <img src="@_imageSource" alt="@_carouselItem.Alt" style="width: 100%; height: 100%"/>
+                        }
+                        else
+                        {
+                                <img src="images/image-placeholder.jpg" alt="@_carouselItem.Caption" style="width: 100%; height: 100%"/>
+                        }
+                        <figcaption class="img-caption">@_carouselItem.Caption</figcaption>
+                </figure>
+            </div>
+            
+            <div class="col-8">
+                <h2>Carousel Item</h2>
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="carousel-item-alt-input" style="width: 300px">Image Alternative Name</span>
+                    <input type="text" @bind="_carouselItem.Alt" class="form-control" placeholder="Image Alternative Name" aria-label="Image Alternative Name" aria-describedby="carousel-item-alt-input">
+                </div>
+
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="carousel-item-caption-input" style="width: 300px">Image Caption Text</span>
+                    <input type="text" @bind="_carouselItem.Caption" class="form-control" placeholder="Image Caption Text" aria-label="Image Caption Text" aria-describedby="carousel-item-caption-input">
+                </div>
+
+                <button class="btn btn-dark btn-sm w-100" type="submit">Submit Changes</button>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter]
+    public int CarouselItemId { get; set; }
+
+    private readonly CarouselItemForUpdateDto _carouselItem = new();
+    private string _imageSource;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var policyResponse = await CarouselItemService.GetAsync(CarouselItemId);
+        if (policyResponse.Outcome == OutcomeType.Successful &&
+            policyResponse.Result is not null && policyResponse.Result.Count > 0)
+        {
+            var carouselItem = policyResponse.Result;
+            if (carouselItem is not null)
+            {
+                _carouselItem.Alt = carouselItem["Alt"].ToString();
+                _carouselItem.Caption = carouselItem["Caption"].ToString();
+                _imageSource = await DownloadImageAsync(CarouselItemId);
+            }
+        }
+    }
+    
+    private async Task<string> DownloadImageAsync(int carouselItemId)
+    {
+        var policyResponse = await ImageService.GetImageAsync(carouselItemId);
+        if (policyResponse.Outcome != OutcomeType.Successful ||
+            policyResponse.Result is null) return "images/image-placeholder.jpg";
+                
+        var image = policyResponse.Result;
+
+        return String.IsNullOrEmpty(image.Src) 
+            ? "images/image-placeholder.jpg" 
+            : image.Src;
+    }
+
+    private async Task OnValidSubmit(EditContext arg)
+    {
+        var policyResponse = await CarouselItemService.UpdateAsync(CarouselItemId, _carouselItem);
+        if (policyResponse.Outcome == OutcomeType.Successful &&
+            policyResponse.Result.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo("/ManageCarouselItems", forceLoad: true);
+        }
+    }
+}
