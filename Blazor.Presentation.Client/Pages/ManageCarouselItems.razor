@@ -1,113 +1,172 @@
 ﻿@page "/ManageCarouselItems"
 @using Blazor.Presentation.Client.Services;
-@using Blazor.Shared.Entities.DataTransferObjects;
+@using Blazor.Shared.Entities.DataTransferObjects
 @using Blazor.Shared.Entities.Identity;
-@using Blazor.Shared.Entities.LinkModels
-@using Blazor.Shared.Entities.Models
-@using System.Net.Http.Headers
-@using System.Text.Json
 @using Blazor.Shared.Entities.RequestFeatures
-@using Blazor.Shared.Entities.Responses
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Buttons
+@using SelectionType = Syncfusion.Blazor.Grids.SelectionType
 @inject CarouselItemService CarouselItemService
 @attribute [Authorize(Policy = Policies.FromFrance)]
 
-<PageTitle>Carousel items</PageTitle>
+<PageTitle>Carousel Items</PageTitle>
 
-<h1>Carousel items</h1>
+<h1>Management</h1>
 
-@if (_responseDetails == null)
+<h2>Create Carousel Item</h2>
+@if (_carouselItemForCreation?.Image != null)
 {
-    <p><em>Loading...</em></p>
+    <div class="row">
+        <div class="col-4">
+            @if (_carouselItemForCreation.Image.ImageFile is null)
+            {
+                <figure class="img-container">
+                    <img src="images/image-placeholder.jpg" alt="Image Place Holder" style="height:100%;width:100%;" />
+                    <figcaption class="img-caption">Image Place Holder for Caption</figcaption>
+                </figure>
+            }
+            else
+            {
+                <figure class="img-container">
+                    <img src="@_selectedRow.Image" alt="@_selectedRow.ImageAlternativeText" style="height:100%;width:100%;" />
+                    <figcaption class="img-caption">@_selectedRow.ImageCaption</figcaption>
+                </figure>
+            }
+        </div>
+        <div class="col-8">
+            <SfTextBox Value="@_carouselItemForCreation.Alt" CssClass="mb-1" Placeholder="Image Alternative Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
+            <SfTextBox Value="@_carouselItemForCreation.Caption" CssClass="mb-1" Placeholder="Image Caption Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
+            <SfTextBox Value="@_carouselItemForCreation.Image.FileName" CssClass="mb-2" Placeholder="Image File Name" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
+            <div class="flex-row">
+                <SfButton Content="Create" CssClass="e-outline"> OnClick="@OnDeleteSelectedRowButtonClick"></SfButton>
+            </div>
+        </div>
+    </div>
+}
+
+<h2>Selected Carousel Item</h2>
+@if (_selectedRow is not null)
+{
+    <div class="row">
+        <div class="col-4">
+            @if (String.IsNullOrEmpty(_selectedRow.Image))
+            {
+                <figure class="img-container">
+                    <img src="images/image-placeholder.jpg" alt="Image Place Holder" style="height:100%;width:100%;" />
+                    <figcaption class="img-caption">Image Place Holder for Caption</figcaption>
+                </figure>
+            }
+            else
+            {
+                <figure class="img-container">
+                    <img src="@_selectedRow.Image" alt="@_selectedRow.ImageAlternativeText" style="height:100%;width:100%;" />
+                    <figcaption class="img-caption">@_selectedRow.ImageCaption</figcaption>
+                </figure>
+            }
+        </div>
+        <div class="col-8">
+            <SfTextBox Value="@_selectedRow.Identifier.ToString()" CssClass="mb-1" Placeholder="Unique Identifier" FloatLabelType="@FloatLabelType.Auto" Enabled="false"></SfTextBox>
+            <SfTextBox Value="@_selectedRow.ImageAlternativeText" CssClass="mb-1" Placeholder="Image Alternative Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
+            <SfTextBox Value="@_selectedRow.ImageCaption" CssClass="mb-2" Placeholder="Image Caption Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
+            <div class="flex-row">
+                <SfButton Content="Delete" CssClass="e-outline"> OnClick="@OnDeleteSelectedRowButtonClick"></SfButton>
+                <SfButton Content="Update" CssClass="e-outline"> OnClick="@OnDeleteSelectedRowButtonClick"></SfButton>
+            </div>
+        </div>
+    </div>
 }
 else
 {
+    <p>There is not selected carousel item to display ...</p>
+}
+
+<h2>Carousel Items Table</h2>
+@if (_dataGridRows is not null)
+{
     <div class="row">
-        <table class="table">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Image Alternative Text</th>
-                <th>Caption Text</th>
-                <th>Remove</th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach (var carouselItem in _responseDetails.Content.Value)
-            {
-                <tr>
-                    <td>@if (carouselItem.ContainsKey("Id")) @carouselItem["Id"].ToString()</td>
-                    <td>@if (carouselItem.ContainsKey("Alt")) @carouselItem["Alt"].ToString()</td>
-                    <td>@if (carouselItem.ContainsKey("Caption")) @carouselItem["Caption"].ToString()</td>
-                    <td><button class="btn btn-primary btn-sm" @onclick="() => DeleteCarouselItem(carouselItem)">Delete</button></td>
-                </tr>
-            }
-            </tbody>
-        </table>
+        <SfGrid @ref="@_grid" DataSource="@_dataGridRows" AllowFiltering="true" AllowSorting="true" AllowPaging="true" AllowGrouping="true">
+            <GridSelectionSettings Type="SelectionType.Single"></GridSelectionSettings>
+            <GridEvents RowSelected="OnDataGridRowSelected" TValue="DataGridRow"></GridEvents>
+            <GridPageSettings PageSize="10" CurrentPage="1"></GridPageSettings>
+            <GridColumns>
+                <GridColumn Field="@nameof(DataGridRow.Identifier)" HeaderText="Unique Identifier" TextAlign="TextAlign.Center"></GridColumn>
+                <GridColumn Field="@nameof(DataGridRow.ImageAlternativeText)" HeaderText="Image Alternative Text" TextAlign="TextAlign.Center"></GridColumn>
+                <GridColumn Field="@nameof(DataGridRow.ImageCaption)" HeaderText="Image Caption Text" TextAlign="TextAlign.Center"></GridColumn>
+            </GridColumns>
+        </SfGrid>
     </div>
-    
-    <div class="row">
-        <div class="col-6 text-right">
-            <button class="btn btn-primary btn-sm" @onclick="PrevCarouselItemsPageAsync">Prev</button>
-        </div>
-        <div class="col-6 text-left">
-            <button class="btn btn-primary btn-sm" @onclick="NextCarouselItemsPageAsync">Next</button>
-        </div>
-    </div>
-    
-    <p>@_responseDetails.ToString()</p>
+}
+else
+{
+    <p>There are not carousel items to display ...</p>
 }
 
 @code {
-    private ResponseDetails<LinkCollectionWrapper<Entity>> _responseDetails;
-
-    private readonly CarouselItemParameters _carouselItemParameters = new CarouselItemParameters()
+    private List<DataGridRow> _dataGridRows;
+    private SfGrid<DataGridRow> _grid;
+    private DataGridRow _selectedRow;
+    private SfButton _deleteSelectedRowButton;
+    private readonly CarouselItemForCreationDto _carouselItemForCreation = new()
     {
-        PageSize = 10,
+        Alt = String.Empty,
+        Caption = String.Empty,
+        Image = new ImageForCreationDto
+        {
+            FileName = String.Empty
+        }
+    };
+
+    public sealed class DataGridRow
+    {
+        public int Identifier { get; set; }
+        public string ImageAlternativeText { get; set; }
+        public string ImageCaption { get; set; }
+        public string Image { get; set; }
+    }
+
+    private readonly CarouselItemParameters _carouselItemParameters = new()
+    {
+        PageSize = 50,
         PageNumber = 1
     };
 
+    private void OnDataGridRowSelected(RowSelectEventArgs<DataGridRow> args)
+    {
+        _selectedRow = args.Data;
+    }
+
     protected override async Task OnInitializedAsync()
     {
-        _responseDetails = await CarouselItemService.GetAllAsync(_carouselItemParameters);
-    }
-
-    private async Task NextCarouselItemsPageAsync(MouseEventArgs arg)
-    {
-        _carouselItemParameters.PageNumber++;
-        _responseDetails = await CarouselItemService.GetAllAsync(_carouselItemParameters);
-    }
-
-    private async Task PrevCarouselItemsPageAsync(MouseEventArgs arg)
-    {
-        _carouselItemParameters.PageNumber--;
-        _responseDetails  = await CarouselItemService.GetAllAsync(_carouselItemParameters);
-    }
-
-    private async Task DeleteCarouselItem(Entity carouselItem)
-    {
-        if (carouselItem.ContainsKey("Id"))
+        var response = await CarouselItemService.GetAllWithoutLinksAsync(_carouselItemParameters);
+        var dataGridElements = response.Select(entity => new DataGridRow
         {
-            if (!int.TryParse(carouselItem["Id"].ToString()!, out var id))
+            Identifier = Int32.Parse(entity["Id"].ToString() ?? String.Empty), 
+            ImageAlternativeText = entity["Alt"].ToString(), 
+            ImageCaption = entity["Caption"].ToString(), 
+            Image = String.Empty
+        }).ToList();
+        
+        _dataGridRows = dataGridElements;
+        _selectedRow = dataGridElements.FirstOrDefault();
+    }
+
+    private async Task OnDeleteSelectedRowButtonClick(MouseEventArgs arg)
+    {
+        var responseDetails = await CarouselItemService.DeleteAsync(_selectedRow.Identifier);
+        if (responseDetails.IsSuccess)
+        {
+            if (_dataGridRows.Remove(_selectedRow))
             {
-                _responseDetails.Message = "Unique identifier for carousel item conversion failure";
-                return;
+                _selectedRow = _dataGridRows.FirstOrDefault();
+                await _grid.GoToPageAsync(1);
             }
-            
-            var temp  = await CarouselItemService.DeleteAsync(id);
-            
-            if (temp.IsSuccess)
-            {
-                _responseDetails.Content.Value.Remove(carouselItem);
-            }
-            
-            _responseDetails = new ResponseDetails<LinkCollectionWrapper<Entity>>
-            {
-                Message = temp.Message,
-                IsResponse = temp.IsResponse,
-                IsSuccess = temp.IsSuccess,
-                Content = _responseDetails.Content
-            };
+
+            await _grid.Refresh();
+        }
+        else
+        {
+            await _grid.Refresh();
         }
     }
-
 }

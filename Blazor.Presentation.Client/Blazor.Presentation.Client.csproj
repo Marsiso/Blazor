@@ -18,6 +18,7 @@
     <PackageReference Include="Syncfusion.Blazor.Navigations" Version="20.3.0.59" />
     <PackageReference Include="Syncfusion.Blazor.SplitButtons" Version="20.3.0.59" />
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="20.3.0.59" />
+    <PackageReference Include="Syncfusion.Blazor.TreeGrid" Version="20.3.0.59" />
   </ItemGroup>
 
   <ItemGroup>

@@ -23,12 +23,27 @@ public sealed class CarouselItemService
         _httpClientFactory = httpClientFactory;
     }
 
-    public async ValueTask<ResponseDetails<LinkCollectionWrapper<Entity>>> GetAllAsync(CarouselItemParameters carouselItemParameters)
+    public async ValueTask<List<Entity>> GetAllWithoutLinksAsync(CarouselItemParameters carouselItemParameters)
     {
-        var responseDetails = new ResponseDetails<LinkCollectionWrapper<Entity>> { IsResponse = true, Content = new LinkCollectionWrapper<Entity>() };
+        var httpClient = _httpClientFactory.CreateClient(nameof(CarouselItemService));
+        httpClient.DefaultRequestHeaders.Accept.Clear();
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        var retryPolicy = Policy<List<Entity>>
+            .Handle<HttpRequestException>()
+            .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
+
+        return await retryPolicy.ExecuteAsync(async () => await httpClient.GetFromJsonAsync<List<Entity>>(
+            $"api/CarouselItem?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}"));
+    }
+
+    public async ValueTask<ResponseDetails<LinkCollectionWrapper<Entity>>> GetAllWithLinksAsync(CarouselItemParameters carouselItemParameters)
+    {
+        var responseDetails = new ResponseDetails<LinkCollectionWrapper<Entity>> { Content = new LinkCollectionWrapper<Entity>() };
+        
         var httpClient = _httpClientFactory.CreateClient(nameof(CarouselItemService));
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.utb.hateoas+json"));
+        
         var retryPolicy = Policy<ResponseDetails<LinkCollectionWrapper<Entity>>>
             .Handle<HttpRequestException>()
             .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
@@ -41,6 +56,7 @@ public sealed class CarouselItemService
                     $"api/CarouselItem?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}",
                     HttpCompletionOption.ResponseHeadersRead);
 
+                responseDetails.IsResponse = true;
                 if (response.IsSuccessStatusCode)
                 {
                     responseDetails.IsSuccess = true;
@@ -73,7 +89,6 @@ public sealed class CarouselItemService
             catch (TaskCanceledException )
             {
                 responseDetails.Message = "Http client connection timeout failure";
-                responseDetails.IsResponse = false;
             }
             catch (JsonReaderException)
             {
@@ -84,12 +99,14 @@ public sealed class CarouselItemService
         });
     }
     
-    public async ValueTask<ResponseDetails<LinkCollectionWrapper<Entity>>> GetAsync(int id, CarouselItemParameters carouselItemParameters)
+    public async ValueTask<ResponseDetails<LinkCollectionWrapper<Entity>>> GetWithLinksAsync(int id, CarouselItemParameters carouselItemParameters)
     {
         var responseDetails = new ResponseDetails<LinkCollectionWrapper<Entity>> { IsResponse = true, Content = new LinkCollectionWrapper<Entity>() };
+        
         var httpClient = _httpClientFactory.CreateClient(nameof(CarouselItemService));
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.utb.hateoas+json"));
+        
         var retryPolicy = Policy<ResponseDetails<LinkCollectionWrapper<Entity>>>
             .Handle<HttpRequestException>()
             .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
@@ -102,6 +119,7 @@ public sealed class CarouselItemService
                     $"api/CarouselItem/{id}?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}",
                     HttpCompletionOption.ResponseHeadersRead);
 
+                responseDetails.IsResponse = true;
                 if (response.IsSuccessStatusCode)
                 {
                     responseDetails.IsSuccess = true;
@@ -148,8 +166,9 @@ public sealed class CarouselItemService
     
     public async ValueTask<ResponseDetails<int>> DeleteAsync(int id)
     {
-        var responseDetails = new ResponseDetails<int> { IsResponse = true, Content = id };
+        var responseDetails = new ResponseDetails<int> { Content = id };
         var httpClient = _httpClientFactory.CreateClient(nameof(CarouselItemService));
+        
         var retryPolicy = Policy<ResponseDetails<int>>
             .Handle<HttpRequestException>()
             .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
@@ -159,10 +178,12 @@ public sealed class CarouselItemService
             try
             {
                 var response = await httpClient.DeleteAsync($"api/CarouselItem/{id}");
-
+                
+                responseDetails.IsResponse = true;
                 if (response.IsSuccessStatusCode)
                 {
                     responseDetails.IsSuccess = true;
+                    
                     return responseDetails;
                 }
 
@@ -171,7 +192,6 @@ public sealed class CarouselItemService
             catch (TaskCanceledException )
             {
                 responseDetails.Message = "Http client connection timeout failure";
-                responseDetails.IsResponse = false;
             }
             
             return responseDetails;
