@@ -11,6 +11,11 @@
 @using SelectionType = Syncfusion.Blazor.Grids.SelectionType
 @using System.Text.Json
 @using System.Text.Json.Serialization
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@using System.ComponentModel.DataAnnotations
+@using System.Net
+@using System.Security.Cryptography.X509Certificates
+@using ChangeEventArgs = Microsoft.AspNetCore.Components.ChangeEventArgs
 @inject CarouselItemService CarouselItemService
 @inject ImageService ImageService
 @attribute [Authorize(Policy = Policies.FromFrance)]
@@ -40,33 +45,28 @@
             }
         </div>
         <div class="col-8">
-            @*<EditForm Model="@_carouselItemForCreation" OnValidSubmit="OnValidSubmitAsync">*@
-                @*<DataAnnotationsValidator />
+            <EditForm Model="@_carouselItemForCreation" OnSubmit="@OnValidSubmitAsync">
+                <DataAnnotationsValidator />
                 <div class="form-group">
                     <label for="image-alternative-text">Image Alternative Text</label>
-                    <SfTextBox ID="image-alternative-text" Value="@_carouselItemForCreation.Alt" ShowClearButton=true></SfTextBox>
+                    <SfTextBox ID="image-alternative-text" @bind-Value="_carouselItemForCreation.Alt" ShowClearButton=true></SfTextBox>
                     <ValidationMessage For="@(() => _carouselItemForCreation.Alt)"></ValidationMessage>
                 </div>
                         
                 <div class="form-group mb-2">   
-                        <label for="image-caption-text">Image Caption Text</label>
-                        <SfTextBox ID="image-caption-text" Value="@_carouselItemForCreation.Caption" ShowClearButton=true></SfTextBox>
-                        <ValidationMessage For="@(() => _carouselItemForCreation.Caption)"></ValidationMessage>                    
-                </div>*@
-                
-                @*<div class="form-group">   
-                       <label for="image-file-name">Image File Name</label>
-                       <SfTextBox ID="image-file-name" Value="@_carouselItemForCreation.Image.FileName" ShowClearButton=true></SfTextBox>
-                       <ValidationMessage For="@(() => _carouselItemForCreation.Image.FileName)"></ValidationMessage>                                 
-                </div>*@
-        
-                <SfTextBox @bind-Value="_carouselItemForCreation.Alt" CssClass="mb-1" Placeholder="Image Alternative Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
-                <SfTextBox @bind-Value="_carouselItemForCreation.Caption" CssClass="mb-1" Placeholder="Image Caption Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
-                @*<SfTextBox Value="@_carouselItemForCreation.Image.FileName" CssClass="mb-2" Placeholder="Image File Name" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>*@
+                    <label for="image-caption-text">Image Caption Text</label>
+                    <SfTextBox ID="image-caption-text" @bind-Value="_carouselItemForCreation.Caption" ShowClearButton=true></SfTextBox>
+                    <ValidationMessage For="@(() => _carouselItemForCreation.Caption)"></ValidationMessage>                    
+                </div>
             
-                <SfButton CssClass="e-outline" Content="Create" @onclick="@OnValidSubmitAsync"></SfButton>
-                @*<SfButton CssClass="e-outline">Submit</SfButton>*@
-            @*</EditForm>*@
+                <SfButton type="submit" CssClass="e-outline" Content="Create" @onclick="OnValidSubmitAsync"></SfButton>
+            </EditForm>
+            
+            @*<SfTextBox @bind-Value="_carouselItemForCreation.Alt" CssClass="mb-1" Placeholder="Image Alternative Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
+            <SfTextBox @bind-Value="_carouselItemForCreation.Caption" CssClass="mb-1" Placeholder="Image Caption Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
+            $1$<SfTextBox Value="@_carouselItemForCreation.Image.FileName" CssClass="mb-2" Placeholder="Image File Name" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>#1#
+            
+            <SfButton CssClass="e-outline" Content="Create" @onclick="@OnValidSubmitAsync"></SfButton>*@
         </div>
     </div>
 }
@@ -93,8 +93,8 @@
         </div>
         <div class="col-8">
             <SfTextBox Value="@_selectedRow.Identifier.ToString()" CssClass="mb-1" Placeholder="Unique Identifier" FloatLabelType="@FloatLabelType.Auto" Enabled="false"></SfTextBox>
-            <SfTextBox @bind-Value="_selectedRow.ImageAlternativeText" CssClass="mb-1" Placeholder="Image Alternative Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
-            <SfTextBox @bind-Value="_selectedRow.ImageCaption" CssClass="mb-2" Placeholder="Image Caption Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
+            <SfTextBox @bind-Value="_selectedRow.ImageAlternativeText" @onclick="OnFieldClickHelper" @onchange="OnImageAltChangeAsync" CssClass="mb-1" Placeholder="Image Alternative Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
+            <SfTextBox @bind-Value="_selectedRow.ImageCaption" @onclick="OnFieldClickHelper" @onchange="OnImageCaptionChangeAsync"  CssClass="mb-2" Placeholder="Image Caption Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
             <div class="flex-row">
                 <SfButton CssClass="e-outline" Content="Delete" @onclick="OnDeleteSelectedRowButtonClick"></SfButton>
                 <SfButton CssClass="e-outline" Content="Update" @onclick="OnUpdateSelectedRowButtonClick"></SfButton>
@@ -193,7 +193,8 @@ else
     private async Task OnDeleteSelectedRowButtonClick()
     {
         var policyResult = await CarouselItemService.DeleteAsync(_selectedRow.Identifier);
-        if (policyResult.Outcome == OutcomeType.Successful && _dataGridRows.Remove(_selectedRow))
+        if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode 
+            && _dataGridRows.Remove(_selectedRow))
         {
             _selectedRow = _dataGridRows.FirstOrDefault();
             await _dataGrid.GoToPageAsync(1);
@@ -201,36 +202,80 @@ else
     }
     
 
-    public Task OnUpdateSelectedRowButtonClick(MouseEventArgs e)
+    public async Task OnUpdateSelectedRowButtonClick(MouseEventArgs e)
     {
-        return Task.CompletedTask;
+        CarouselItemForUpdateDto carouselItemForUpdate = new CarouselItemForUpdateDto
+        {
+            Alt = _selectedRow.ImageAlternativeText,
+            Caption = _selectedRow.ImageCaption
+        };
+        
+        var context = new ValidationContext(carouselItemForUpdate, serviceProvider: null, items: null);
+        var validationResults = new List<ValidationResult>();
+        if (Validator.TryValidateObject(carouselItemForUpdate, context, validationResults, true))
+        {
+            var policyResult = await CarouselItemService.UpdateAsync(_selectedRow.Identifier, new CarouselItemForCreationDto
+            {
+                Alt = _selectedRow.ImageAlternativeText,
+                Caption = _selectedRow.ImageCaption
+            });
+            
+            if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode)
+            {
+                await _dataGrid.Refresh();
+            } 
+        }
     }
 
     private async Task OnValidSubmitAsync()
     {
-        var policyResult = await CarouselItemService.PostAsync(_carouselItemForCreation);
-        if (policyResult.Outcome == OutcomeType.Successful)
+        var context = new ValidationContext(_carouselItemForCreation, serviceProvider: null, items: null);
+        var validationResults = new List<ValidationResult>();
+        if (Validator.TryValidateObject(_carouselItemForCreation, context, validationResults, true))
         {
-            var contentStream = await policyResult.Result.Content.ReadAsStreamAsync();
-            var carouselItem = await JsonSerializer.DeserializeAsync<CarouselItemDto>(
-                contentStream,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                });
-
-            if (carouselItem is not null)
+            var policyResult = await CarouselItemService.CreateAsync(_carouselItemForCreation);
+            if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode)
             {
-                _dataGridRows.Add(new DataGridRow
+                var contentStream = await policyResult.Result.Content.ReadAsStreamAsync();
+                var carouselItem = await JsonSerializer.DeserializeAsync<CarouselItemDto>(
+                    contentStream,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                    });
+
+                if (carouselItem is not null)
                 {
-                    Identifier = carouselItem.Id,
-                    ImageAlternativeText = carouselItem.Alt,
-                    ImageCaption = carouselItem.Caption
-                });
-                
-                await _dataGrid.Refresh();
-            }
+                    _dataGridRows.Add(new DataGridRow
+                    {
+                        Identifier = carouselItem.Id,
+                        ImageAlternativeText = carouselItem.Alt,
+                        ImageCaption = carouselItem.Caption
+                    });
+            
+                    await _dataGrid.Refresh();
+                }
+            }  
         }
+    }
+
+    private async Task OnImageAltChangeAsync(ChangeEventArgs arg)
+    {
+        if (arg.Value is string imageAlt)
+        {
+        }
+    }
+
+    private async Task OnImageCaptionChangeAsync(ChangeEventArgs arg)
+    {
+        if (arg.Value is string imageCaption)
+        {
+        }
+    }
+
+    private Task OnFieldClickHelper(MouseEventArgs arg)
+    {
+        return Task.CompletedTask;
     }
 }

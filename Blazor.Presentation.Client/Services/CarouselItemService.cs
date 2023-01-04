@@ -34,8 +34,18 @@ public sealed class CarouselItemService
             .Handle<HttpRequestException>()
             .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
 
-        return await retryPolicy.ExecuteAndCaptureAsync(async () => await httpClient.GetFromJsonAsync<List<Entity>>(
-            $"CarouselItem?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}"));
+        /*return await retryPolicy.ExecuteAndCaptureAsync(async () => await httpClient.GetFromJsonAsync<List<Entity>>(
+            $"CarouselItem?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}"));*/
+        
+        return await retryPolicy.ExecuteAndCaptureAsync(async () =>
+        {
+            var httpResponse = await httpClient.GetAsync(
+                $"CarouselItem?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}");
+
+            return httpResponse.IsSuccessStatusCode 
+                ? await httpResponse.Content.ReadFromJsonAsync<List<Entity>>() 
+                : new List<Entity>();
+        });
     }
 
     [Obsolete]
@@ -181,7 +191,7 @@ public sealed class CarouselItemService
             await httpClient.DeleteAsync($"CarouselItem/{carouselItemId}"));
     }
     
-    public async Task<PolicyResult<HttpResponseMessage>> PostAsync(CarouselItemForCreationDto carouselItemForCreationDto)
+    public async Task<PolicyResult<HttpResponseMessage>> CreateAsync(CarouselItemForCreationDto carouselItemForCreationDto)
     {
         var httpClient = _httpClientFactory.CreateClient("Default");
         AsyncRetryPolicy retryPolicy = Policy.Handle<HttpRequestException>()
@@ -189,5 +199,15 @@ public sealed class CarouselItemService
 
         return await retryPolicy.ExecuteAndCaptureAsync(async () =>
             await httpClient.PostAsJsonAsync("CarouselItem/", carouselItemForCreationDto));
+    }
+    
+    public async Task<PolicyResult<HttpResponseMessage>> UpdateAsync(int carouselItemId, CarouselItemForCreationDto carouselItemForCreationDto)
+    {
+        var httpClient = _httpClientFactory.CreateClient("Default");
+        AsyncRetryPolicy retryPolicy = Policy.Handle<HttpRequestException>()
+            .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
+
+        return await retryPolicy.ExecuteAndCaptureAsync(async () =>
+            await httpClient.PutAsJsonAsync($"CarouselItem/{carouselItemId}", carouselItemForCreationDto));
     }
 }
