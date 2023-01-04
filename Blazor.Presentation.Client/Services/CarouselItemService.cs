@@ -23,16 +23,16 @@ public sealed class CarouselItemService
         _httpClientFactory = httpClientFactory;
     }
 
-    public async ValueTask<List<Entity>> GetAllWithoutLinksAsync(CarouselItemParameters carouselItemParameters)
+    public async Task<PolicyResult<List<Entity>>> GetAllWithoutLinksAsync(CarouselItemParameters carouselItemParameters)
     {
         var httpClient = _httpClientFactory.CreateClient(nameof(CarouselItemService));
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        var retryPolicy = Policy<List<Entity>>
+        AsyncRetryPolicy<List<Entity>> retryPolicy = Policy<List<Entity>>
             .Handle<HttpRequestException>()
             .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
 
-        return await retryPolicy.ExecuteAsync(async () => await httpClient.GetFromJsonAsync<List<Entity>>(
+        return await retryPolicy.ExecuteAndCaptureAsync(async () => await httpClient.GetFromJsonAsync<List<Entity>>(
             $"api/CarouselItem?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}"));
     }
 
@@ -99,7 +99,7 @@ public sealed class CarouselItemService
         });
     }
     
-    public async ValueTask<ResponseDetails<LinkCollectionWrapper<Entity>>> GetWithLinksAsync(int id, CarouselItemParameters carouselItemParameters)
+    public async ValueTask<ResponseDetails<LinkCollectionWrapper<Entity>>> GetWithLinksAsync(int carouselItemId, CarouselItemParameters carouselItemParameters)
     {
         var responseDetails = new ResponseDetails<LinkCollectionWrapper<Entity>> { IsResponse = true, Content = new LinkCollectionWrapper<Entity>() };
         
@@ -116,7 +116,7 @@ public sealed class CarouselItemService
             try
             {
                 var response = await httpClient.GetAsync(
-                    $"api/CarouselItem/{id}?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}",
+                    $"api/CarouselItem/{carouselItemId}?pageNumber={carouselItemParameters.PageNumber}&pageSize={carouselItemParameters.PageSize}",
                     HttpCompletionOption.ResponseHeadersRead);
 
                 responseDetails.IsResponse = true;
@@ -177,7 +177,7 @@ public sealed class CarouselItemService
         {
             try
             {
-                var response = await httpClient.DeleteAsync($"api/CarouselItem/{id}");
+                var response = await httpClient.DeleteAsync($"api/CarouselItem/{id}", CancellationToken.None);
                 
                 responseDetails.IsResponse = true;
                 if (response.IsSuccessStatusCode)
@@ -210,7 +210,7 @@ public sealed class CarouselItemService
         {
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, $"api/CarouselItem")
+                var request = new HttpRequestMessage(HttpMethod.Post,"api/CarouselItem/")
                 {
                     Content = JsonContent.Create(carouselItemForCreationDto)
                 };

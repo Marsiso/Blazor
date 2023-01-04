@@ -1,13 +1,19 @@
 ﻿@page "/ManageCarouselItems"
 @using Blazor.Presentation.Client.Services;
+@using Blazor.Shared.Entities.Constants
 @using Blazor.Shared.Entities.DataTransferObjects
 @using Blazor.Shared.Entities.Identity;
+@using Blazor.Shared.Entities.Models
 @using Blazor.Shared.Entities.RequestFeatures
-@using Syncfusion.Blazor.Grids
-@using Syncfusion.Blazor.Inputs
+@using Polly
+@using Polly.Retry
 @using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Grids
 @using SelectionType = Syncfusion.Blazor.Grids.SelectionType
+@using IHttpClientFactory = System.Net.Http.IHttpClientFactory
 @inject CarouselItemService CarouselItemService
+@inject IHttpClientFactory HttpClientFactory
 @attribute [Authorize(Policy = Policies.FromFrance)]
 
 <PageTitle>Carousel Items</PageTitle>
@@ -39,7 +45,7 @@
             <SfTextBox Value="@_carouselItemForCreation.Caption" CssClass="mb-1" Placeholder="Image Caption Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
             <SfTextBox Value="@_carouselItemForCreation.Image.FileName" CssClass="mb-2" Placeholder="Image File Name" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
             <div class="flex-row">
-                <SfButton Content="Create" CssClass="e-outline"> OnClick="@OnDeleteSelectedRowButtonClick"></SfButton>
+                <SfButton CssClass="e-outline" Content="Create" @onclick="@OnCreateCarouselItemButtonClick"></SfButton>
             </div>
         </div>
     </div>
@@ -70,8 +76,8 @@
             <SfTextBox Value="@_selectedRow.ImageAlternativeText" CssClass="mb-1" Placeholder="Image Alternative Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
             <SfTextBox Value="@_selectedRow.ImageCaption" CssClass="mb-2" Placeholder="Image Caption Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
             <div class="flex-row">
-                <SfButton Content="Delete" CssClass="e-outline"> OnClick="@OnDeleteSelectedRowButtonClick"></SfButton>
-                <SfButton Content="Update" CssClass="e-outline"> OnClick="@OnDeleteSelectedRowButtonClick"></SfButton>
+                <SfButton CssClass="e-outline" Content="Delete" @onclick="OnDeleteSelectedRowButtonClick"></SfButton>
+                <SfButton CssClass="e-outline" Content="Update" @onclick="OnUpdateSelectedRowButtonClick"></SfButton>
             </div>
         </div>
     </div>
@@ -85,9 +91,9 @@ else
 @if (_dataGridRows is not null)
 {
     <div class="row">
-        <SfGrid @ref="@_grid" DataSource="@_dataGridRows" AllowFiltering="true" AllowSorting="true" AllowPaging="true" AllowGrouping="true">
+        <SfGrid @ref="@_dataGrid" DataSource="@_dataGridRows" AllowFiltering="true" AllowSorting="true" AllowPaging="true" AllowGrouping="true">
             <GridSelectionSettings Type="SelectionType.Single"></GridSelectionSettings>
-            <GridEvents RowSelected="OnDataGridRowSelected" TValue="DataGridRow"></GridEvents>
+            <GridEvents RowSelected="OnDataGridRowSelectedAsync" TValue="DataGridRow"></GridEvents>
             <GridPageSettings PageSize="10" CurrentPage="1"></GridPageSettings>
             <GridColumns>
                 <GridColumn Field="@nameof(DataGridRow.Identifier)" HeaderText="Unique Identifier" TextAlign="TextAlign.Center"></GridColumn>
@@ -103,10 +109,11 @@ else
 }
 
 @code {
-    private List<DataGridRow> _dataGridRows;
-    private SfGrid<DataGridRow> _grid;
-    private DataGridRow _selectedRow;
+    private SfGrid<DataGridRow> _dataGrid;
     private SfButton _deleteSelectedRowButton;
+    private List<DataGridRow> _dataGridRows;
+    private DataGridRow _selectedRow;
+
     private readonly CarouselItemForCreationDto _carouselItemForCreation = new()
     {
         Alt = String.Empty,
@@ -131,27 +138,44 @@ else
         PageNumber = 1
     };
 
-    private void OnDataGridRowSelected(RowSelectEventArgs<DataGridRow> args)
+    private async Task OnDataGridRowSelectedAsync(RowSelectEventArgs<DataGridRow> args)
     {
         _selectedRow = args.Data;
+        var policyResult = await ImageService.GetImageAsync(args.Data.Identifier);
+        if (policyResult.Outcome == OutcomeType.Successful)
+        {
+            _selectedRow.Image = policyResult.Result.Src;
+        }
     }
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await CarouselItemService.GetAllWithoutLinksAsync(_carouselItemParameters);
-        var dataGridElements = response.Select(entity => new DataGridRow
         {
-            Identifier = Int32.Parse(entity["Id"].ToString() ?? String.Empty), 
-            ImageAlternativeText = entity["Alt"].ToString(), 
-            ImageCaption = entity["Caption"].ToString(), 
-            Image = String.Empty
-        }).ToList();
+            PolicyResult<List<Entity>> policyResult = await CarouselItemService.GetAllWithoutLinksAsync(_carouselItemParameters);
+            if (policyResult.Outcome == OutcomeType.Successful)
+            {
+                _dataGridRows = policyResult.Result.Select(entity => new DataGridRow
+                {
+                    Identifier = Int32.Parse(entity["Id"].ToString() ?? String.Empty), 
+                    ImageAlternativeText = entity["Alt"].ToString(), 
+                    ImageCaption = entity["Caption"].ToString(), 
+                    Image = String.Empty
+                }).ToList();
+            }
+        }
         
-        _dataGridRows = dataGridElements;
-        _selectedRow = dataGridElements.FirstOrDefault();
+        _selectedRow = _dataGridRows.FirstOrDefault();
+        if (_selectedRow is not null)
+        {
+            var policyResult = await ImageService.GetImageAsync(_selectedRow.Identifier);
+            if (policyResult.Outcome == OutcomeType.Successful)
+            {
+                _selectedRow.Image = policyResult.Result.Src;
+            }
+        }
     }
 
-    private async Task OnDeleteSelectedRowButtonClick(MouseEventArgs arg)
+    private async Task OnDeleteSelectedRowButtonClick()
     {
         var responseDetails = await CarouselItemService.DeleteAsync(_selectedRow.Identifier);
         if (responseDetails.IsSuccess)
@@ -159,14 +183,25 @@ else
             if (_dataGridRows.Remove(_selectedRow))
             {
                 _selectedRow = _dataGridRows.FirstOrDefault();
-                await _grid.GoToPageAsync(1);
+                await _dataGrid.GoToPageAsync(1);
             }
 
-            await _grid.Refresh();
+            await _dataGrid.Refresh();
         }
         else
         {
-            await _grid.Refresh();
+            await _dataGrid.Refresh();
         }
+    }
+    
+
+    public Task OnUpdateSelectedRowButtonClick(MouseEventArgs e)
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task OnCreateCarouselItemButtonClick(MouseEventArgs e)
+    {
+        return Task.CompletedTask;
     }
 }
