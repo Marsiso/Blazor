@@ -2,7 +2,7 @@
 
 namespace Blazor.Shared.Entities.RequestFeatures;
 
-public sealed class CarouselItemParameters : RequestParameters
+public sealed class CarouselItemParameters : RequestParameters, ICloneable
 {
     public CarouselItemParameters()
     {
@@ -12,4 +12,8 @@ public sealed class CarouselItemParameters : RequestParameters
     public int MaxId { get; set; } = int.MaxValue;
 
     public bool ValidIdRange => MinId < MaxId;
+    public object Clone()
+    {
+        return this.MemberwiseClone();
+    }
 }

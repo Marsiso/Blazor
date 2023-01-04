@@ -1,281 +1,182 @@
 ﻿@page "/ManageCarouselItems"
 @using Blazor.Presentation.Client.Services;
-@using Blazor.Shared.Entities.DataTransferObjects
 @using Blazor.Shared.Entities.Identity;
 @using Blazor.Shared.Entities.Models
 @using Blazor.Shared.Entities.RequestFeatures
 @using Polly
-@using Syncfusion.Blazor.Buttons
-@using Syncfusion.Blazor.Inputs
-@using Syncfusion.Blazor.Grids
-@using SelectionType = Syncfusion.Blazor.Grids.SelectionType
-@using System.Text.Json
-@using System.Text.Json.Serialization
-@using Microsoft.EntityFrameworkCore.Metadata.Internal
-@using System.ComponentModel.DataAnnotations
-@using System.Net
-@using System.Security.Cryptography.X509Certificates
-@using ChangeEventArgs = Microsoft.AspNetCore.Components.ChangeEventArgs
 @inject CarouselItemService CarouselItemService
 @inject ImageService ImageService
 @attribute [Authorize(Policy = Policies.FromFrance)]
 
 <PageTitle>Carousel Items</PageTitle>
 
-<h1>Management</h1>
-
-<h2>Create Carousel Item</h2>
-@if (_carouselItemForCreation is not null)
+@if (CarouselItems is null)
 {
-    <div class="row">
-        <div class="col-4">
-            @if (_carouselItemForCreation.Image?.ImageFile is null)
-            {
-                <figure class="img-container">
-                    <img src="images/image-placeholder.jpg" alt="Image Place Holder" style="height:100%;width:100%;" />
-                    <figcaption class="img-caption">Image Place Holder for Caption</figcaption>
-                </figure>
-            }
-            else
-            {
-                <figure class="img-container">
-                    <img src="@_selectedRow.Image" alt="@_selectedRow.ImageAlternativeText" style="height:100%;width:100%;" />
-                    <figcaption class="img-caption">@_selectedRow.ImageCaption</figcaption>
-                </figure>
-            }
-        </div>
-        <div class="col-8">
-            <EditForm Model="@_carouselItemForCreation" OnSubmit="@OnValidSubmitAsync">
-                <DataAnnotationsValidator />
-                <div class="form-group">
-                    <label for="image-alternative-text">Image Alternative Text</label>
-                    <SfTextBox ID="image-alternative-text" @bind-Value="_carouselItemForCreation.Alt" ShowClearButton=true></SfTextBox>
-                    <ValidationMessage For="@(() => _carouselItemForCreation.Alt)"></ValidationMessage>
-                </div>
-                        
-                <div class="form-group mb-2">   
-                    <label for="image-caption-text">Image Caption Text</label>
-                    <SfTextBox ID="image-caption-text" @bind-Value="_carouselItemForCreation.Caption" ShowClearButton=true></SfTextBox>
-                    <ValidationMessage For="@(() => _carouselItemForCreation.Caption)"></ValidationMessage>                    
-                </div>
-            
-                <SfButton type="submit" CssClass="e-outline" Content="Create" @onclick="OnValidSubmitAsync"></SfButton>
-            </EditForm>
-            
-            @*<SfTextBox @bind-Value="_carouselItemForCreation.Alt" CssClass="mb-1" Placeholder="Image Alternative Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
-            <SfTextBox @bind-Value="_carouselItemForCreation.Caption" CssClass="mb-1" Placeholder="Image Caption Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
-            $1$<SfTextBox Value="@_carouselItemForCreation.Image.FileName" CssClass="mb-2" Placeholder="Image File Name" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>#1#
-            
-            <SfButton CssClass="e-outline" Content="Create" @onclick="@OnValidSubmitAsync"></SfButton>*@
-        </div>
-    </div>
-}
-
-<h2 class="mt-3">Selected Carousel Item</h2>
-@if (_selectedRow is not null)
-{
-    <div class="row">
-        <div class="col-4">
-            @if (String.IsNullOrEmpty(_selectedRow.Image))
-            {
-                <figure class="img-container">
-                    <img src="images/image-placeholder.jpg" alt="Image Place Holder" style="height:100%;width:100%;" />
-                    <figcaption class="img-caption">Image Place Holder for Caption</figcaption>
-                </figure>
-            }
-            else
-            {
-                <figure class="img-container">
-                    <img src="@_selectedRow.Image" alt="@_selectedRow.ImageAlternativeText" style="height:100%;width:100%;" />
-                    <figcaption class="img-caption">@_selectedRow.ImageCaption</figcaption>
-                </figure>
-            }
-        </div>
-        <div class="col-8">
-            <SfTextBox Value="@_selectedRow.Identifier.ToString()" CssClass="mb-1" Placeholder="Unique Identifier" FloatLabelType="@FloatLabelType.Auto" Enabled="false"></SfTextBox>
-            <SfTextBox @bind-Value="_selectedRow.ImageAlternativeText" @onclick="OnFieldClickHelper" @onchange="OnImageAltChangeAsync" CssClass="mb-1" Placeholder="Image Alternative Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
-            <SfTextBox @bind-Value="_selectedRow.ImageCaption" @onclick="OnFieldClickHelper" @onchange="OnImageCaptionChangeAsync"  CssClass="mb-2" Placeholder="Image Caption Text" FloatLabelType="@FloatLabelType.Auto" ShowClearButton=true></SfTextBox>
-            <div class="flex-row">
-                <SfButton CssClass="e-outline" Content="Delete" @onclick="OnDeleteSelectedRowButtonClick"></SfButton>
-                <SfButton CssClass="e-outline" Content="Update" @onclick="OnUpdateSelectedRowButtonClick"></SfButton>
-            </div>
-        </div>
-    </div>
+        <p><strong>Loading data ...</strong></p>
 }
 else
 {
-    <p>There is not selected carousel item to display ...</p>
-}
-
-<h2 class="mt-3">Carousel Items Table</h2>
-@if (_dataGridRows is not null)
-{
-    <div class="row">
-        <SfGrid @ref="@_dataGrid" DataSource="@_dataGridRows" AllowFiltering="true" AllowSorting="true" AllowPaging="true" AllowGrouping="true">
-            <GridSelectionSettings Type="SelectionType.Single"></GridSelectionSettings>
-            <GridEvents RowSelected="OnDataGridRowSelectedAsync" TValue="DataGridRow"></GridEvents>
-            <GridPageSettings PageSize="10" CurrentPage="1"></GridPageSettings>
-            <GridColumns>
-                <GridColumn Field="@nameof(DataGridRow.Identifier)" HeaderText="Unique Identifier" TextAlign="TextAlign.Center"></GridColumn>
-                <GridColumn Field="@nameof(DataGridRow.ImageAlternativeText)" HeaderText="Image Alternative Text" TextAlign="TextAlign.Center"></GridColumn>
-                <GridColumn Field="@nameof(DataGridRow.ImageCaption)" HeaderText="Image Caption Text" TextAlign="TextAlign.Center"></GridColumn>
-            </GridColumns>
-        </SfGrid>
-    </div>
-}
-else
-{
-    <p>There are not carousel items to display ...</p>
+        <h1 class="fw-bold">Carousel Items Managment Table</h1>
+        <div class="row">
+                <table class="table table-borderless">
+                        <thead class="table-light">
+                        <tr>
+                                <th scope="col">Search</th>
+                                <th scope="col">Paging</th>
+                                <th scope="col">Ordering</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                                <td></td>
+                                <td>
+                                        <div class="flex-row">
+                                                <button class="btn btn-sm" @onclick="OnPrevCarouselItemsPage">Prev</button>
+                                                <button class="btn btn-sm active">@CarouselItemParameters.PageNumber</button>
+                                                <button class="btn btn-sm" @onclick="OnNextCarouselItemsPage">Next</button>
+                                        </div>
+                                </td>
+                                <td></td>
+                        </tr>
+                        </tbody>
+                </table>
+        </div>
+        <div class="row">
+                <div class="table-responsive">
+                        <table class="table table-borderless align-middle">
+                                <thead class="table-light">
+                                <tr>
+                                        <th scope="col">Image</th>
+                                        <th scope="col">Unique Identifier</th>
+                                        <th scope="col">Image Alternative Text</th>
+                                        <th scope="col">Image Caption Text</th>
+                                        <th scope="col">Operation</th>
+                                        <th scope="col">Operation</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @for (var index = 0; index < CarouselItems.Count; index++)
+                                {
+                                        var carouselItemId = Int32.Parse(CarouselItems[index]["Id"].ToString() ?? "0");
+                                        <tr>
+                                                <td>
+                                                        <figure class="img-container">
+                                                                @if (CarouselItems[index].ContainsKey("Src"))
+                                                                {
+                                                                        <img src="@CarouselItems[index]["Src"]" alt="" style="height: calc(10vw / 1.78 - 1px);"/>
+                                                                }
+                                                                else
+                                                                {
+                                                                        <img src="images/image-placeholder.jpg" alt="@CarouselItems[index]["Caption"]" style="height: calc(10vw / 1.78 - 1px);"/>
+                                                                }
+                                                                <figcaption class="img-caption">@CarouselItems[index]["Caption"]</figcaption>
+                                                        </figure>
+                                                </td>
+                                                <td>@CarouselItems[index]["Id"]</td>
+                                                <td>@CarouselItems[index]["Alt"]</td>
+                                                <td>@CarouselItems[index]["Caption"]</td>
+                                                <td><button class="btn btn-sm">Edit</button></td>
+                                                <td><button class="btn btn-sm" @onclick="() => OnDeleteCarouselItemClick(carouselItemId)">Delete</button></td>
+                                        </tr>
+                                }
+                                </tbody>
+                        </table> 
+                </div>
+        </div>
 }
 
 @code {
-    private SfGrid<DataGridRow> _dataGrid;
-    private List<DataGridRow> _dataGridRows;
-    private DataGridRow _selectedRow;
-
-    private readonly CarouselItemForCreationDto _carouselItemForCreation = new()
-    {
-        Alt = String.Empty,
-        Caption = String.Empty
-    };
-
-    public sealed class DataGridRow
-    {
-        public int Identifier { get; set; }
-        public string ImageAlternativeText { get; set; }
-        public string ImageCaption { get; set; }
-        public string Image { get; set; }
-    }
-
-    private readonly CarouselItemParameters _carouselItemParameters = new()
-    {
-        PageSize = 50,
-        PageNumber = 1
-    };
-
-    private async Task OnDataGridRowSelectedAsync(RowSelectEventArgs<DataGridRow> args)
-    {
-        _selectedRow = args.Data;
-        var policyResult = await ImageService.GetImageAsync(args.Data.Identifier);
-        if (policyResult.Outcome == OutcomeType.Successful)
+        List<Entity> CarouselItems { get; set; } = new();
+        CarouselItemParameters CarouselItemParameters { get; set; } = new()
         {
-            _selectedRow.Image = policyResult.Result.Src;
-        }
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        {
-            PolicyResult<List<Entity>> policyResult = await CarouselItemService.GetAllAsync(_carouselItemParameters);
-            if (policyResult.Outcome == OutcomeType.Successful)
-            {
-                _dataGridRows = policyResult.Result.Select(entity => new DataGridRow
-                {
-                    Identifier = Int32.Parse(entity["Id"].ToString() ?? String.Empty), 
-                    ImageAlternativeText = entity["Alt"].ToString(), 
-                    ImageCaption = entity["Caption"].ToString(), 
-                    Image = String.Empty
-                }).ToList();
-            }
-        }
-        
-        _selectedRow = _dataGridRows.FirstOrDefault();
-        if (_selectedRow is not null)
-        {
-            var policyResult = await ImageService.GetImageAsync(_selectedRow.Identifier);
-            if (policyResult.Outcome == OutcomeType.Successful)
-            {
-                _selectedRow.Image = policyResult.Result.Src;
-            }
-        }
-    }
-
-    private async Task OnDeleteSelectedRowButtonClick()
-    {
-        var policyResult = await CarouselItemService.DeleteAsync(_selectedRow.Identifier);
-        if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode 
-            && _dataGridRows.Remove(_selectedRow))
-        {
-            _selectedRow = _dataGridRows.FirstOrDefault();
-            await _dataGrid.GoToPageAsync(1);
-        }
-    }
-    
-
-    public async Task OnUpdateSelectedRowButtonClick(MouseEventArgs e)
-    {
-        CarouselItemForUpdateDto carouselItemForUpdate = new CarouselItemForUpdateDto
-        {
-            Alt = _selectedRow.ImageAlternativeText,
-            Caption = _selectedRow.ImageCaption
+                PageSize = 10,
+                PageNumber = 1
         };
-        
-        var context = new ValidationContext(carouselItemForUpdate, serviceProvider: null, items: null);
-        var validationResults = new List<ValidationResult>();
-        if (Validator.TryValidateObject(carouselItemForUpdate, context, validationResults, true))
-        {
-            var policyResult = await CarouselItemService.UpdateAsync(_selectedRow.Identifier, new CarouselItemForCreationDto
-            {
-                Alt = _selectedRow.ImageAlternativeText,
-                Caption = _selectedRow.ImageCaption
-            });
-            
-            if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode)
-            {
-                await _dataGrid.Refresh();
-            } 
-        }
-    }
 
-    private async Task OnValidSubmitAsync()
-    {
-        var context = new ValidationContext(_carouselItemForCreation, serviceProvider: null, items: null);
-        var validationResults = new List<ValidationResult>();
-        if (Validator.TryValidateObject(_carouselItemForCreation, context, validationResults, true))
-        {
-            var policyResult = await CarouselItemService.CreateAsync(_carouselItemForCreation);
-            if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode)
-            {
-                var contentStream = await policyResult.Result.Content.ReadAsStreamAsync();
-                var carouselItem = await JsonSerializer.DeserializeAsync<CarouselItemDto>(
-                    contentStream,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true,
-                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                    });
+        int text;
 
-                if (carouselItem is not null)
+        protected override async Task OnInitializedAsync()
+        {
+                var policyResponse = await CarouselItemService.GetAllAsync(CarouselItemParameters);
+                if (policyResponse.Outcome == OutcomeType.Successful &&
+                    policyResponse.Result is not null)
                 {
-                    _dataGridRows.Add(new DataGridRow
-                    {
-                        Identifier = carouselItem.Id,
-                        ImageAlternativeText = carouselItem.Alt,
-                        ImageCaption = carouselItem.Caption
-                    });
-            
-                    await _dataGrid.Refresh();
+                        CarouselItems = policyResponse.Result;
+                        foreach (var carouselItem in CarouselItems)
+                        {
+                                var image = await DownloadImageAsync(Int32.Parse(carouselItem["Id"].ToString()!));
+                                carouselItem.Add("Src", image);
+                        }
                 }
-            }  
         }
-    }
 
-    private async Task OnImageAltChangeAsync(ChangeEventArgs arg)
-    {
-        if (arg.Value is string imageAlt)
+        private async Task<string> DownloadImageAsync(int carouselItemId)
         {
-        }
-    }
+                var policyResponse = await ImageService.GetImageAsync(carouselItemId);
+                if (policyResponse.Outcome != OutcomeType.Successful ||
+                    policyResponse.Result is null) return "images/image-placeholder.jpg";
+                
+                var image = policyResponse.Result;
 
-    private async Task OnImageCaptionChangeAsync(ChangeEventArgs arg)
-    {
-        if (arg.Value is string imageCaption)
+                return String.IsNullOrEmpty(image.Src) 
+                        ? "images/image-placeholder.jpg" 
+                        : image.Src;
+        }
+
+        private async Task OnNextCarouselItemsPage(MouseEventArgs e)
         {
+                var carouselItemParameters = (CarouselItemParameters)CarouselItemParameters.Clone();
+                carouselItemParameters.PageNumber++;
+                
+                var policyResponse = await CarouselItemService.GetAllAsync(carouselItemParameters);
+                
+                if (policyResponse.Outcome == OutcomeType.Successful &&
+                    policyResponse.Result is not null && policyResponse.Result.Count > 0)
+                {
+                        CarouselItemParameters.PageNumber++;
+                        CarouselItems = policyResponse.Result;
+                        foreach (var carouselItem in CarouselItems)
+                        {
+                                var image = await DownloadImageAsync(Int32.Parse(carouselItem["Id"].ToString()!));
+                                carouselItem.Add("Src", image);
+                        }
+                }
         }
-    }
 
-    private Task OnFieldClickHelper(MouseEventArgs arg)
-    {
-        return Task.CompletedTask;
-    }
+        private async Task OnPrevCarouselItemsPage(MouseEventArgs e)
+        {
+                var policyResult = await CarouselItemService.GetAllAsync(new CarouselItemParameters
+                {
+                        PageSize = CarouselItemParameters.PageSize,
+                        PageNumber = CarouselItemParameters.PageNumber - 1, // Request next page
+                        Fields = CarouselItemParameters.Fields,
+                        MaxId = CarouselItemParameters.MaxId,
+                        MinId = CarouselItemParameters.MinId,
+                        OrderBy = CarouselItemParameters.OrderBy,
+                        SearchTerm = CarouselItemParameters.SearchTerm
+                });
+                
+                if (policyResult.Outcome == OutcomeType.Successful &&
+                    policyResult.Result is not null && policyResult.Result.Count > 0)
+                {
+                        CarouselItemParameters.PageNumber--;
+                        CarouselItems = policyResult.Result;
+                        foreach (var carouselItem in CarouselItems)
+                        {
+                                var image = await DownloadImageAsync(Int32.Parse(carouselItem["Id"].ToString()!));
+                                carouselItem.Add("Src", image);
+                        }
+                }
+        }
+
+        private async Task OnDeleteCarouselItemClick(int carouselItemId)
+        {
+                var policyResult = await CarouselItemService.DeleteAsync(carouselItemId);
+                if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode)
+                {
+                        CarouselItems = CarouselItems
+                                .Where(entity => entity["Id"].ToString() != carouselItemId.ToString())
+                                .ToList();
+                }
+        }
 }
