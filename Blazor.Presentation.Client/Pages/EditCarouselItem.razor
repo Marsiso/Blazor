@@ -1,9 +1,13 @@
 ﻿@page "/ManageCarouselItems/Edit/{CarouselItemId:int}"
 @using Blazor.Presentation.Client.Services
+@using Blazor.Shared.Entities.Constants
 @using Blazor.Shared.Entities.DataTransferObjects
 @using Blazor.Shared.Entities.Identity
 @using Blazor.Shared.Entities.Models
+@using Microsoft.AspNetCore.Http.Internal
+@using Microsoft.Net.Http.Headers
 @using Polly
+@using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue
 @inject CarouselItemService CarouselItemService
 @inject ImageService ImageService
 @inject NavigationManager NavigationManager
@@ -18,15 +22,15 @@
         <div class="row">
             <div class="col-4">
                 <figure class="img-container">
-                        @if (!String.IsNullOrEmpty(_imageSource))
-                        {
-                                <img src="@_imageSource" alt="@_carouselItem.Alt" style="width: 100%; height: 100%"/>
-                        }
-                        else
-                        {
-                                <img src="images/image-placeholder.jpg" alt="@_carouselItem.Caption" style="width: 100%; height: 100%"/>
-                        }
-                        <figcaption class="img-caption">@_carouselItem.Caption</figcaption>
+                    @if (!String.IsNullOrEmpty(_imageSource))
+                    {
+                        <img src="@_imageSource" alt="@_carouselItem.Alt" style="width: 100%; height: 100%"/>
+                    }
+                    else
+                    {
+                        <img src="images/image-placeholder.jpg" alt="@_carouselItem.Caption" style="width: 100%; height: 100%"/>
+                    }
+                    <figcaption class="img-caption">@_carouselItem.Caption</figcaption>
                 </figure>
             </div>
             
@@ -48,12 +52,26 @@
     </EditForm>
 </div>
 
+<div class="row">
+    <div class="row">
+        <div class="col-4">
+        </div>
+        
+        <div class="col-8">
+            <InputFile OnChange="@OnInputFileChange"></InputFile>
+        </div>
+    </div>    
+</div>
+
+<p>@_test</p>
+
 @code {
     [Parameter]
     public int CarouselItemId { get; set; }
 
     private readonly CarouselItemForUpdateDto _carouselItem = new();
     private string _imageSource;
+    private string _test;
 
     protected override async Task OnInitializedAsync()
     {
@@ -93,4 +111,16 @@
             NavigationManager.NavigateTo("/ManageCarouselItems", forceLoad: true);
         }
     }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs arg)
+    {
+        var browserFile = arg.File;
+        /*var buffers = new byte[browserFile.Size];
+        _ = await browserFile.OpenReadStream(browserFile.Size).ReadAsync(buffers);
+        string imageType = browserFile.ContentType;
+        _imageSource = $"data:{imageType};base64,{Convert.ToBase64String(buffers)}";*/
+
+        _imageSource = await ImageService.UploadImageAsync(CarouselItemId, browserFile);
+    }
+
 }
