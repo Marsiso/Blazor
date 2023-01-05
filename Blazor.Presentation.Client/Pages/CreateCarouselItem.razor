@@ -1,13 +1,8 @@
-﻿@page "/ManageCarouselItems/Edit/{CarouselItemId:int}"
+﻿@page "/ManageCarouselItems/Create"
 @using Blazor.Presentation.Client.Services
-@using Blazor.Shared.Entities.Constants
 @using Blazor.Shared.Entities.DataTransferObjects
 @using Blazor.Shared.Entities.Identity
-@using Blazor.Shared.Entities.Models
-@using Microsoft.AspNetCore.Http.Internal
-@using Microsoft.Net.Http.Headers
 @using Polly
-@using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue
 @inject CarouselItemService CarouselItemService
 @inject ImageService ImageService
 @inject NavigationManager NavigationManager
@@ -27,7 +22,6 @@
             <figcaption class="img-caption">@_carouselItem.Caption</figcaption>
         </figure>
     </div>
-    
     <div class="col-8">
         <h1>Editor</h1>
         <h2>Carousel Item</h2>
@@ -46,7 +40,14 @@
 
             <div class="input-group mb-3">
                 <label for="image-file-input" class="form-label"></label>
-                <InputFile class="form-control" id="image-file-input" type="file" OnChange="@OnInputFileChange"/>
+                @if (_carouselItemDto is null)
+                {
+                    <InputFile class="form-control" id="image-file-input" type="file" OnChange="@OnInputFileChange" disabled="true"/>
+                }
+                else
+                {
+                    <InputFile class="form-control" id="image-file-input" type="file" OnChange="@OnInputFileChange"/>
+                }
             </div>
 
             <button class="btn btn-dark btn-sm w-100" type="submit">Submit Changes</button>
@@ -55,27 +56,9 @@
 </div>
 
 @code {
-    [Parameter]
-    public int CarouselItemId { get; set; }
-    
-    private readonly CarouselItemForUpdateDto _carouselItem = new();
+    private readonly CarouselItemForCreationDto _carouselItem = new();
+    private CarouselItemDto _carouselItemDto;
     private string _imageSource;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var policyResponse = await CarouselItemService.GetAsync(CarouselItemId);
-        if (policyResponse.Outcome == OutcomeType.Successful &&
-            policyResponse.Result is not null && policyResponse.Result.Count > 0)
-        {
-            var carouselItem = policyResponse.Result;
-            if (carouselItem is not null)
-            {
-                _carouselItem.Alt = carouselItem["Alt"].ToString();
-                _carouselItem.Caption = carouselItem["Caption"].ToString();
-                _imageSource = await DownloadImageAsync(CarouselItemId);
-            }
-        }
-    }
     
     private async Task<string> DownloadImageAsync(int carouselItemId)
     {
@@ -90,19 +73,14 @@
             : image.Src;
     }
 
-    private async Task OnValidSubmit(EditContext arg)
-    {
-        var policyResponse = await CarouselItemService.UpdateAsync(CarouselItemId, _carouselItem);
-        if (policyResponse.Outcome == OutcomeType.Successful &&
-            policyResponse.Result.IsSuccessStatusCode)
-        {
-            NavigationManager.NavigateTo("/ManageCarouselItems", forceLoad: true);
-        }
-    }
+    private async Task OnValidSubmit(EditContext arg) => _carouselItemDto = await CarouselItemService.CreateAsync(_carouselItem);
 
     private async Task OnInputFileChange(InputFileChangeEventArgs arg)
     {
-        var browserFile = arg.File;
-        _imageSource = await ImageService.UploadImageAsync(CarouselItemId, browserFile);
+        if (_carouselItemDto is not null)
+        {
+            var browserFile = arg.File;
+            _imageSource = await ImageService.UploadImageAsync(_carouselItemDto.Id, browserFile);
+        }
     }
 }

@@ -10,17 +10,17 @@
 
 <div class="appbar-control-container">
     <SfAppBar ColorMode="AppBarColor.Dark">
-        <SfButton CssClass="e-inherit" IconCss="e-icons e-home" OnClick="onHomeBtnClick"></SfButton>
+        <SfButton CssClass="e-inherit" IconCss="e-icons e-home" OnClick="OnHomeBtnClick"></SfButton>
         <AuthorizeView>
             <Authorized>
                 <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Carousel">
                     <DropDownMenuItems>
-                        <AuthorizeView Policy="@Policies.FromFrance" Context="FrenchUserContext">
+                        <AuthorizeView Policy="@Policies.FromFrance" Context="_">
                             <Authorized>
                                 <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/ManageCarouselItems"></DropDownMenuItem>
                             </Authorized>
                         </AuthorizeView>
-                        <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right"></DropDownMenuItem>
+                        <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right" Url="/ManageCarouselItems/Create"></DropDownMenuItem>
                         <DropDownMenuItem Text="Claims" IconCss="e-icons e-insert-right" Url="/Claims"></DropDownMenuItem>
                     </DropDownMenuItems>
                 </SfDropDownButton>
@@ -31,7 +31,7 @@
             <Authorized>
                 <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Products">
                     <DropDownMenuItems>
-                        <AuthorizeView Policy="@Policies.FromCzechRepublic" Roles="@Roles.Administrator" Context="CzechAdminUserContext">
+                        <AuthorizeView Policy="@Policies.FromCzechRepublic" Roles="@Roles.Administrator" Context="_">
                             <Authorized>
                                 <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/FetchData"></DropDownMenuItem>
                             </Authorized>
@@ -74,9 +74,9 @@
 </div>
 
 @code{
-    public void onNavBtnClick() => NavigationManager.NavigateTo("#");
+    private void OnNavBtnClick() => NavigationManager.NavigateTo("#");
 
-    public void onHomeBtnClick() => NavigationManager.NavigateTo("#");
+    private void OnHomeBtnClick() => NavigationManager.NavigateTo("#");
 
     private async Task BeginSignOut(MouseEventArgs args)
     {

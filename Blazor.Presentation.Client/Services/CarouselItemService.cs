@@ -6,6 +6,7 @@ using Blazor.Shared.Entities.Models;
 using Blazor.Shared.Entities.RequestFeatures;
 using Polly;
 using Polly.Retry;
+using Syncfusion.Blazor.Navigations;
 
 namespace Blazor.Presentation.Client.Services;
 
@@ -78,14 +79,24 @@ public sealed class CarouselItemService
             await httpClient.DeleteAsync($"CarouselItem/{carouselItemId}"));
     }
     
-    public async Task<PolicyResult<HttpResponseMessage>> CreateAsync(CarouselItemForCreationDto carouselItemForCreationDto)
+    public async Task<CarouselItemDto> CreateAsync(CarouselItemForCreationDto carouselItemForCreationDto)
     {
         var httpClient = _httpClientFactory.CreateClient("Default");
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        
         AsyncRetryPolicy retryPolicy = Policy.Handle<HttpRequestException>()
             .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
 
-        return await retryPolicy.ExecuteAndCaptureAsync(async () =>
+        var policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () =>
             await httpClient.PostAsJsonAsync("CarouselItem/", carouselItemForCreationDto));
+
+        CarouselItemDto carouselItemDto = null;
+        if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode)
+        {
+            carouselItemDto = await policyResult.Result.Content.ReadFromJsonAsync<CarouselItemDto>();
+        }
+
+        return carouselItemDto;
     }
     
     public async Task<PolicyResult<HttpResponseMessage>> UpdateAsync(int carouselItemId, CarouselItemForUpdateDto carouselItemForCreationDto)
