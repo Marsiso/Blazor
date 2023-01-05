@@ -62,7 +62,7 @@ else
                                 <thead class="table-light">
                                 <tr>
                                         <th scope="col">Image</th>
-                                        <th scope="col" @onclick="() => OnOrderByTermSelected(nameof(CarouselItemEntity.Id))" style="cursor: pointer">Unique Identifier</th>
+                                        <th scope="col" @onclick="() => OnOrderByTermSelected(nameof(CarouselItemEntity.Id))" style="cursor: pointer">ID</th>
                                         <th scope="col" @onclick="() => OnOrderByTermSelected(nameof(CarouselItemEntity.Alt))" style="cursor: pointer">Image Alternative Text</th>
                                         <th scope="col" @onclick="() => OnOrderByTermSelected(nameof(CarouselItemEntity.Caption))" style="cursor: pointer">Image Caption Text</th>
                                         <th scope="col">Operation</th>
@@ -84,7 +84,7 @@ else
                                                                 {
                                                                         <img src="images/image-placeholder.jpg" alt="@CarouselItems[index]["Caption"]" style="height: calc(10vw / 1.78 - 1px);"/>
                                                                 }
-                                                                <figcaption class="img-caption">@CarouselItems[index]["Caption"]</figcaption>
+                                                                @*<figcaption class="img-caption">@CarouselItems[index]["Caption"]</figcaption>*@
                                                         </figure>
                                                 </td>
                                                 <td>@CarouselItems[index]["Id"]</td>
