@@ -9,10 +9,9 @@ public sealed class OrderEntity
     [Column("pk_order"), Key] 
     public int Id { get; set; }
     
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+    [DataType(DataType.Date, ErrorMessage = "Order date created is not a valid date")]
     public DateTime DateTimeCreated { get; set; }
 
-    [StringLength(25, ErrorMessage = "Total length of order number cannot exceed {1} characters.")]
     [Required(ErrorMessage = "Order number is a required field")]
     public string OrderNumber { get; set; }
 

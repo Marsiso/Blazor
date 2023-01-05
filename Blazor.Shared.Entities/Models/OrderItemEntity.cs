@@ -20,4 +20,10 @@ public sealed class OrderItemEntity
 
     [ForeignKey(nameof(ProductEntity))]
     public int ProductId { get; set; }
+    
+    [ForeignKey(nameof(OrderEntity))]
+    public int OrderId { get; set; }
+
+    public ProductEntity Product { get; set; }
+    public OrderEntity Order { get; set; }
 }

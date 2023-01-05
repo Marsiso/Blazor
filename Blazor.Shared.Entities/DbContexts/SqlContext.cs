@@ -6,8 +6,11 @@ namespace Blazor.Shared.Entities.DbContexts;
 
 public class SqlContext : DbContext
 {
-	public DbSet<CarouselItemEntity> CarouselItems { get; set; }
 	public DbSet<ImageEntity> Images { get; set; }
+	public DbSet<CarouselItemEntity> CarouselItems { get; set; }
+	public DbSet<ProductEntity> Products { get; set; }
+	public DbSet<OrderItemEntity> OrderItems { get; set; }
+	public DbSet<OrderEntity> Orders { get; set; }
 	public DbSet<UserEntity> Users { get; set; }
 
 	public SqlContext(DbContextOptions<SqlContext> options) : base(options)
@@ -21,9 +24,12 @@ public class SqlContext : DbContext
 			.HasConversion(
 				arrayOfStrings => String.Join(',', arrayOfStrings),
 				arrayOfStringsAsString => arrayOfStringsAsString.Split(',', StringSplitOptions.RemoveEmptyEntries));
-		
+
+		modelBuilder.ApplyConfiguration(new UserConfiguration());
+		modelBuilder.ApplyConfiguration(new OrderConfiguration());
+		modelBuilder.ApplyConfiguration(new ProductConfiguration());
 		modelBuilder.ApplyConfiguration(new CarouselItemConfiguration());
 		modelBuilder.ApplyConfiguration(new ImageConfiguration());
-		modelBuilder.ApplyConfiguration(new UserConfiguration());
+		modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
 	}
 }

@@ -29,12 +29,11 @@ public sealed class CarouselItemExistsValidationFilter : IAsyncActionFilter
         {
             _logger.Warning("Carousel item with id: {Id} doesn't exist in the database", id);
             context.Result = new NotFoundObjectResult(String.Format("Carousel item with id: {0} doesn't exist in the database", id));
+            return;
         }
-        else
-        {
-            context.HttpContext.Items.Add(nameof(CarouselItemEntity), carouselItemEntity);
-        }
-        
+
+        context.HttpContext.Items.Add(nameof(CarouselItemEntity), carouselItemEntity);
+
         await next();
     }
 }

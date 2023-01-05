@@ -4,46 +4,46 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Blazor.Shared.Entities.Configuration;
 
-public class ImageConfiguration : IEntityTypeConfiguration<ImageEntity>
+public sealed class ProductConfiguration : IEntityTypeConfiguration<ProductEntity>
 {
-    public void Configure(EntityTypeBuilder<ImageEntity> builder)
+    public void Configure(EntityTypeBuilder<ProductEntity> builder)
     {
-        builder.HasData(new List<ImageEntity>
+        builder.HasData(new List<ProductEntity>
         {
             new()
             {
                 Id = 1,
                 CarouselItemId = 1,
-                SafeName = "RI043b4.jpg",
-                UnsafeName = "img-iphone-14-pro-128gb-purple",
+                Name = "iPhone 14 Pro 128GB fialová",
+                Price = 33_490
             },
             new()
             {
                 Id = 2,
                 CarouselItemId = 2,
-                SafeName = "ImgW.jpg",
-                UnsafeName = "img-garmin-tactix-7-pro-solar-sapphire-ballistics",
+                Name = "Garmin Tactix 7 Pro Solar Sapphire Ballistics",
+                Price = 35_790
             },
             new()
             {
                 Id = 3,
                 CarouselItemId = 3,
-                SafeName = "IAsDgW.jpg",
-                UnsafeName = "img-jura-e6-platinum",
+                Name = "JURA E6 Platin",
+                Price = 20_990
             },
             new()
             {
                 Id = 4,
                 CarouselItemId = 4,
-                SafeName = "asdfgsd.jpg",
-                UnsafeName = "img-msi-geforce-rtx-3080-ventus",
+                Name = "MSI GeForce RTX 3080 VENTUS 3X PLUS 10G OC LHR",
+                Price = 22_990
             },
             new()
             {
                 Id = 5,
                 CarouselItemId = 5,
-                SafeName = "dfSDsd.jpg",
-                UnsafeName = "img-amd-ryzen-5-5600x",
+                Name = "AMD Ryzen 5 5600X",
+                Price = 4_490
             }
         });
     }

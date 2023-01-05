@@ -31,4 +31,9 @@
     <ProjectReference Include="..\Blazor.Shared\Blazor.Shared.Implementations.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations" />
+    <Folder Include="wwwroot\images\carousel" />
+  </ItemGroup>
+
 </Project>

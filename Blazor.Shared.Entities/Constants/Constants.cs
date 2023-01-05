@@ -2,8 +2,8 @@
 
 public static class Constants
 {
-    public const long MinimalImageSize = 1_000;
-    public const long MaximalImageSize = 10_000_000;
-    public const int MaxPageSize = 50;
-    public const int MaxHttpRequestRetries = 3;
+    public const long MinimalImageSize = 10_000;
+    public const long MaximalImageSize = 300_000;
+    public const int MaxPageSize = 250;
+    public const int MaxHttpRequestRetries = 5;
 }
