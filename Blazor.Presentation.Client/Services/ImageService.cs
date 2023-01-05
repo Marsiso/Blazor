@@ -33,6 +33,11 @@ public sealed class ImageService
     
     public async Task<string> UploadImageAsync(int carouselItemId, IBrowserFile browserFile)
     {
+        if (browserFile.Size is >= Constants.MaximalImageSize or <= Constants.MinimalImageSize)
+        {
+            return String.Empty;
+        }
+
         var httpClient = _httpClientFactory.CreateClient("Default");
         var retryPolicy = Policy<HttpResponseMessage>
             .Handle<HttpRequestException>()
@@ -66,6 +71,6 @@ public sealed class ImageService
             return imageSource;
         }
         
-        return imageSource;
+        return String.Empty;
     }
 }

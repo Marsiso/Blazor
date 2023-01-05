@@ -45,22 +45,16 @@
                     <span class="input-group-text" id="carousel-item-caption-input" style="width: 300px">Image Caption Text</span>
                     <input type="text" @bind="_carouselItem.Caption" class="form-control" placeholder="Image Caption Text" aria-label="Image Caption Text" aria-describedby="carousel-item-caption-input">
                 </div>
+                
+                <div class="input-group mb-3">
+                    <label for="image-file-input" class="form-label"></label>
+                    <InputFile class="form-control" id="image-file-input" type="file" OnChange="@OnInputFileChange" />
+                </div>
 
                 <button class="btn btn-dark btn-sm w-100" type="submit">Submit Changes</button>
             </div>
         </div>
     </EditForm>
-</div>
-
-<div class="row">
-    <div class="row">
-        <div class="col-4">
-        </div>
-        
-        <div class="col-8">
-            <InputFile OnChange="@OnInputFileChange"></InputFile>
-        </div>
-    </div>    
 </div>
 
 <p>@_test</p>
@@ -115,12 +109,6 @@
     private async Task OnInputFileChange(InputFileChangeEventArgs arg)
     {
         var browserFile = arg.File;
-        /*var buffers = new byte[browserFile.Size];
-        _ = await browserFile.OpenReadStream(browserFile.Size).ReadAsync(buffers);
-        string imageType = browserFile.ContentType;
-        _imageSource = $"data:{imageType};base64,{Convert.ToBase64String(buffers)}";*/
-
         _imageSource = await ImageService.UploadImageAsync(CarouselItemId, browserFile);
     }
-
 }
