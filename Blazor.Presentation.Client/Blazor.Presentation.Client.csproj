@@ -29,4 +29,8 @@
     <ProjectReference Include="..\Blazor.Shared\Blazor.Shared.Implementations.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="wwwroot\emails\ResetPasswordView.cshtml" />
+  </ItemGroup>
+
 </Project>

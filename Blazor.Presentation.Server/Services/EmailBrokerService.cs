@@ -14,7 +14,7 @@ public sealed class EmailBrokerService
     private readonly int _port;
     private readonly bool _enabledSsl;
     private readonly string _senderEmail;
-    private string _senderPassword;
+    private readonly string _senderPassword;
     private string _senderName;
 
     public EmailBrokerService(IConfiguration configuration, ILogger logger)
@@ -46,10 +46,10 @@ public sealed class EmailBrokerService
             return false;
         
         var emailResponse = await Email
-            .From(_senderEmail)
-            .To(recipientEmail)
+            .From(_senderEmail, _senderName)
+            .To(recipientEmail, String.IsNullOrEmpty(recipientName) ? recipientEmail : recipientName)
             .Subject("Account")
-            .UsingTemplate(template, new { })
+            .UsingTemplate(template, new {  })
             .SendAsync();
             
         return emailResponse.Successful;
@@ -65,13 +65,14 @@ public sealed class EmailBrokerService
         
         StringBuilder stringBuilder = new();
         
-        stringBuilder.Append("<p>Greetings <strong>");
+        stringBuilder.Append("<p>Hello <strong>");
         stringBuilder.Append(String.IsNullOrEmpty(recipientName) ? recipientEmail : recipientName);
         stringBuilder.AppendLine("</strong>,</p><br>");
         stringBuilder.AppendLine("<p>If you've lost your password or wish to reset it, use the link below.</p>");
         stringBuilder.Append("<a href=\"");
         stringBuilder.Append(passwordResetLink);
         stringBuilder.AppendLine("\">Reset Your Password</a><br>");
+        stringBuilder.AppendLine("<br><p>If you did not request a password reset, you can safely ignore this email. Only a person with access to your email can reset your account password.</p>");
 
         template = stringBuilder.ToString();
         return true;
