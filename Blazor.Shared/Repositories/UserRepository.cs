@@ -15,6 +15,10 @@ public sealed class UserRepository : RepositoryBase<UserEntity>, IUserRepository
         await FindByCondition(u => u.Email == username, trackChanges)
             .SingleOrDefaultAsync();
 
+    public async Task<UserEntity> GetUserAsync(int userId, bool trackChanges) =>
+        await FindByCondition(u => u.Id == userId, trackChanges)
+            .SingleOrDefaultAsync();
+
     public void CreateUser(UserEntity user) => Create(user);
 
     public void UpdateUser(UserEntity user) => Update(user);

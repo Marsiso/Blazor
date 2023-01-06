@@ -29,7 +29,7 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<UserEntity>
                 Name = "Marek Olsak",
                 FirstName = "Marek",
                 LastName = "Olsak",
-                Email = "m_olsak@outlook.cz",
+                Email = "olsak.marek@outlook.cz",
                 Password = "Password9910014785",
                 Address = "Prague",
                 Roles = new[] { Identity.Roles.Manager, Identity.Roles.Visitor }

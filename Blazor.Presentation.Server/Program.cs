@@ -1,6 +1,7 @@
 using AspNetCoreRateLimit;
 using Blazor.Presentation.Server.Extensions;
 using Blazor.Presentation.Server.Filters;
+using Blazor.Presentation.Server.Services;
 using Blazor.Presentation.Server.Utility;
 using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DataTransferObjects;
@@ -45,16 +46,18 @@ builder.Services
     .ConfigureIISIntegration()
     .ConfigureRepositoryManager()
     .AddAutoMapper(typeof(CarouselItemMappingProfile), typeof(ImageMappingProfile), typeof(ProductMappingProfile),
-        typeof(OrderItemMappingProfile), typeof(OrderMappingProfile))
+        typeof(OrderItemMappingProfile), typeof(OrderMappingProfile), typeof(UserMappingProfile))
     .AddScoped<CarouselItemExistsValidationFilter>()
     .AddScoped<ProductExistsValidationFilter>()
     .AddScoped<OrderItemExistsValidationFilter>()
     .AddScoped<OrderExistsValidationFilter>()
+    .AddScoped<UserExistsValidationFilter>()
     .AddScoped<ValidationFilter>()
     .AddScoped<ImageExistsValidationFilter>()
     .AddScoped<ImageFormatValidationFilter>()
     .AddScoped<ImageSizeValidationFilter>()
     .AddScoped<IDataShaper<CarouselItemDto>, DataShaper<CarouselItemDto>>()
+    .AddSingleton<EmailBrokerService>()
     .AddCustomMediaTypes()
     .AddScoped<ValidateMediaTypeAttribute>()
     .AddScoped<CarouselItemLinks>()
