@@ -5,5 +5,8 @@ public interface IRepositoryManager
     ICarouselItemRepository CarouselItem { get; }
     IImageRepository Image { get; }
     IUserRepository User { get; }
+    IProductRepository Product { get; }
+    IOrderItemRepository OrderItem { get; }
+    IOrderRepository Order { get; }
     Task SaveAsync();
 }

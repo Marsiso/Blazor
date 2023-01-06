@@ -44,8 +44,12 @@ builder.Services
     .ConfigureCors()
     .ConfigureIISIntegration()
     .ConfigureRepositoryManager()
-    .AddAutoMapper(typeof(CarouselItemMappingProfile), typeof(ImageMappingProfile))
+    .AddAutoMapper(typeof(CarouselItemMappingProfile), typeof(ImageMappingProfile), typeof(ProductMappingProfile),
+        typeof(OrderItemMappingProfile), typeof(OrderMappingProfile))
     .AddScoped<CarouselItemExistsValidationFilter>()
+    .AddScoped<ProductExistsValidationFilter>()
+    .AddScoped<OrderItemExistsValidationFilter>()
+    .AddScoped<OrderExistsValidationFilter>()
     .AddScoped<ValidationFilter>()
     .AddScoped<ImageExistsValidationFilter>()
     .AddScoped<ImageFormatValidationFilter>()
