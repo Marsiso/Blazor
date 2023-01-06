@@ -68,13 +68,16 @@ public sealed class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SendPasswordResetLinkAsync(/*[FromServices] IConfiguration configuration,*/[FromBody] UserEmailDto userEmail)
     {
-        var userEntity = HttpContext.Items[nameof(UserEntity)] as UserEntity;
-        if (userEntity is null)
+        if (HttpContext.Items[nameof(UserEntity)] is not UserEntity userEntity)
         {
             return NotFound();
         }
 
-        const string redirectUrl = @"https://localhost:10001";
+        var resetPasswordRequestEntity = new ResetPasswordRequestEntity { UserId = userEntity.Id };
+        _repository.ResetPasswordRequest.CreatePasswordResetRequest(resetPasswordRequestEntity);
+        await _repository.SaveAsync();
+
+        var redirectUrl = @"https://localhost:10001/Account/Password/Reset/" + resetPasswordRequestEntity.Code;
         if (await _emailService.TrySendResetPasswordLink(userEntity.Email, userEntity.FirstName, redirectUrl))
         {
             return Ok();

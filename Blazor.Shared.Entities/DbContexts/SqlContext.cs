@@ -12,6 +12,7 @@ public class SqlContext : DbContext
 	public DbSet<OrderItemEntity> OrderItems { get; set; }
 	public DbSet<OrderEntity> Orders { get; set; }
 	public DbSet<UserEntity> Users { get; set; }
+	public DbSet<ResetPasswordRequestEntity> ResetPasswordRequests { get; set; }
 
 	public SqlContext(DbContextOptions<SqlContext> options) : base(options)
 	{
