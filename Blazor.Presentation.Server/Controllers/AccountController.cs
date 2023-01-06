@@ -1,17 +1,10 @@
 ﻿using System.Net;
-using System.Net.Mail;
-using System.Text;
-using System.Text.Json;
 using AutoMapper;
 using Blazor.Presentation.Server.Filters;
 using Blazor.Presentation.Server.Services;
 using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DataTransferObjects;
 using Blazor.Shared.Entities.Models;
-using Blazor.Shared.Entities.RequestFeatures;
-using FluentEmail.Core;
-using FluentEmail.Smtp;
-using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.Mvc;
 using ILogger = Serilog.ILogger;
 
@@ -73,7 +66,7 @@ public sealed class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> SendPasswordResetLinkAsync([FromBody] UserEmailDto userEmail)
+    public async Task<IActionResult> SendPasswordResetLinkAsync(/*[FromServices] IConfiguration configuration,*/[FromBody] UserEmailDto userEmail)
     {
         var userEntity = HttpContext.Items[nameof(UserEntity)] as UserEntity;
         if (userEntity is null)
@@ -88,6 +81,15 @@ public sealed class AccountController : ControllerBase
         }
 
         return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
+    }
+    
+    [HttpPut("Password/Reset", Name = "UpdatePasswordAsync")]
+    [ServiceFilter(typeof(ValidationFilter), Order = 1)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdatePasswordAsync(int userId, [FromBody] ResetPasswordDto user)
+    {
+        return Ok();
     }
     
     [HttpPost("Create", Name = "CreateUserAsync")]

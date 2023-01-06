@@ -9,47 +9,50 @@ namespace Blazor.Presentation.Server.Services;
 
 public sealed class EmailBrokerService
 {
-    private readonly IConfiguration _configuration;
     private readonly ILogger _logger;
+    private readonly string _host;
+    private readonly int _port;
+    private readonly bool _enabledSsl;
+    private readonly string _senderEmail;
+    private string _senderPassword;
+    private string _senderName;
 
     public EmailBrokerService(IConfiguration configuration, ILogger logger)
     {
-        _configuration = configuration;
         _logger = logger;
+        _host = configuration.GetSection("Smtp:Host").Value;
+        _port = Int32.Parse(configuration.GetSection("Smtp:Port").Value);
+        _enabledSsl = Boolean.Parse(configuration.GetSection("Smtp:Ssl").Value);
+        _senderEmail = configuration.GetSection("Smtp:Sender:Email").Value;
+        _senderPassword = configuration.GetSection("Smtp:Sender:Password").Value;
+        _senderName = configuration.GetSection("Smtp:Sender:Name").Value;
     }
 
     public async Task<bool> TrySendResetPasswordLink(string recipientEmail, string recipientName, string passwordResetLink)
     {
-        var sender = new SmtpSender(() => new SmtpClient(_configuration.GetSection("Smtp:Host").Value)
+        var sender = new SmtpSender(() => new SmtpClient(_host)
         {
             UseDefaultCredentials = false,
-            Port = Int32.Parse(_configuration.GetSection("Smtp:Port").Value),
-            Credentials = new NetworkCredential(_configuration.GetSection("Smtp:Sender:Email").Value, _configuration.GetSection("Smtp:Sender:Password").Value),
-            EnableSsl = Boolean.Parse(_configuration.GetSection("Smtp:Ssl").Value)
+            Port = _port,
+            Credentials = new NetworkCredential(
+                _senderEmail,
+                _senderPassword),
+            EnableSsl = _enabledSsl
         });
 
         Email.DefaultSender = sender;
-        
-        try
-        {
-            if (TryBuildResetPasswordTemplate(recipientEmail, recipientName, passwordResetLink, out var template))
-            {
-                var emailResponse = await Email
-                    .From(_configuration.GetSection("Smtp:Sender:Email").Value, _configuration.GetSection("Smtp:Sender:Name").Value)
-                    .To(recipientEmail, String.IsNullOrEmpty(recipientName) ? recipientEmail : recipientName)
-                    .Subject("Account")
-                    .UsingTemplate(template, new { })
-                    .SendAsync();
 
-                return emailResponse.Successful;
-            }
-        }
-        catch (Exception e)
-        {
-            _logger.Error(e.Message);
-        }
+        if (!TryBuildResetPasswordTemplate(recipientEmail, recipientName, passwordResetLink, out var template))
+            return false;
         
-        return false;
+        var emailResponse = await Email
+            .From(_senderEmail)
+            .To(recipientEmail)
+            .Subject("Account")
+            .UsingTemplate(template, new { })
+            .SendAsync();
+            
+        return emailResponse.Successful;
     }
 
     private bool TryBuildResetPasswordTemplate(string recipientEmail, string recipientName, string passwordResetLink, out string template)
