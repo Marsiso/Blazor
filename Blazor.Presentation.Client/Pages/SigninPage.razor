@@ -41,7 +41,14 @@
                             <SfTextBox @ref="@TextBoxCountry" @bind-Value="_user.Country" Placeholder='Country' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
                             <p><ValidationMessage For="@(() => _user.Country)"></ValidationMessage></p>
         
-                            <SfButton @ref="@ToogleSigninBtnObj" type="submit" IconCss="@SigninBtnIconCss" CssClass="@SigninBtnCssClass" Content="@SigninBtnContent" OnClick="@OnToggleSigninBtnClick"></SfButton>
+                            @if (_isBlocked)
+                            {
+                                <SfButton @ref="@ToogleSigninBtnObj" type="submit" IconCss="@SigninBtnIconCss" CssClass="@SigninBtnCssClass" Content="@SigninBtnContent" OnClick="@OnToggleSigninBtnClick" disabled></SfButton>
+                            }
+                            else
+                            {
+                                <SfButton @ref="@ToogleSigninBtnObj" type="submit" IconCss="@SigninBtnIconCss" CssClass="@SigninBtnCssClass" Content="@SigninBtnContent" OnClick="@OnToggleSigninBtnClick"></SfButton>
+                            }
                         </EditForm>
                     </div>
                     <div class="col-md-1 col-lg-2 col-xl-3"></div>
@@ -64,29 +71,26 @@
     private string SigninBtnContent = "Signin";
     private string SigninBtnCssClass = "e-flat mt-4 w-100";
     private readonly UserForCreationDto _user = new UserForCreationDto();
+    private bool _isBlocked;
 
     private void OnToggleSigninBtnClick()
     {
-        if (ToogleSigninBtnObj.Content == "Signin")
-        {
-            this.SigninBtnContent = "";
-            this.SigninBtnCssClass = "e-flat mt-4 w-100";
-            this.SigninBtnIconCss = "e-icons e-refresh";
-        }
-        else
-        {
-            this.SigninBtnContent = "Signin";
-            this.SigninBtnCssClass = "e-flat mt-4 w-100";
-            this.SigninBtnIconCss = "e-icons e-bullet-6";
-        }
+        if (ToogleSigninBtnObj.Content != "Signin") return;
+        this.SigninBtnContent = "";
+        this.SigninBtnCssClass = "e-flat mt-4 w-100";
+        this.SigninBtnIconCss = "e-icons e-refresh";
     }
 
     private async Task OnValidSubmit(EditContext arg)
     {
+        _isBlocked = true;
         if (await AccountService.TryCreateUserAsync(_user))
         {
             NavigationManager.NavigateTo("#");
+            return;
         }
+
+        _isBlocked = false;
     }
 }
 

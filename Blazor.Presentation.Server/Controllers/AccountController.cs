@@ -138,7 +138,7 @@ public sealed class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateUserAsync([FromBody] UserForCreationDto user)
     {
-        var existingUser = await _repository.User.GetUserAsync(user.Email, true);
+        var existingUser = await _repository.User.GetUserAsync(user.Email, false);
         if (existingUser is not null)
         {
             _logger.Warning("User with email: {Email} already exists in the database", existingUser.Email);
