@@ -32,4 +32,22 @@ public class AccountService
         
         return policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode;
     }
+
+    public async Task<bool> TryResetPasswordAsync(ResetPasswordDto resetPasswordRequest)
+    {
+        if (resetPasswordRequest is null)
+        {
+            return false;
+        }
+
+        var httpClient = _httpClientFactory.CreateClient("Anonymous");
+        var retryPolicy = Policy<HttpResponseMessage>
+            .Handle<HttpRequestException>()
+            .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
+        
+        var policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () => await httpClient.PutAsJsonAsync(
+            $"Account/Password/Reset", resetPasswordRequest));
+        
+        return policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode;
+    }
 }

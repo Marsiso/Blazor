@@ -15,11 +15,12 @@ public sealed class ResetPasswordDto
     [DataType(DataType.Text, ErrorMessage = "Invalid password reset code type")]
     public string Code { get; set; }
 
-    [Required(ErrorMessage = "Image alternative name is a required field")]
-    [MaxLength(50, ErrorMessage = "Maximum length for the image alternative name is 50 characters")]
+    [Required(ErrorMessage = " Password is a required field")]
+    [StringLength(50, ErrorMessage = "Password must be between 5 and 50 characters", MinimumLength = 5)]
     [DataType(DataType.Password, ErrorMessage = "Invalid password format")]
+    [RegularExpression(@"^.*(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*\(\)_\-+=]).*$", ErrorMessage = "Password must meet requirements")]
     public string Password { get; set; }
     
-    [PasswordMatch(ComparisonProperty = nameof(Password), ErrorMessage = "Passwords do not match")]
+    [PasswordMatch(ComparisonProperty = nameof(Password), ErrorMessage = "Passwords doesn't match")]
     public string RepeatedPassword { get; set; }
 }
