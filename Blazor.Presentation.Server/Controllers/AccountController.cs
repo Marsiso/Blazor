@@ -90,8 +90,43 @@ public sealed class AccountController : ControllerBase
     [ServiceFilter(typeof(ValidationFilter), Order = 1)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> UpdatePasswordAsync(int userId, [FromBody] ResetPasswordDto user)
+    public async Task<IActionResult> UpdatePasswordAsync([FromBody] ResetPasswordDto resetPassword)
     {
+        if (String.IsNullOrEmpty(resetPassword.Code))
+        {
+            return BadRequest("Reset password request code can not be null or empty string");
+        }
+
+        var userEntity = await _repository.User.GetUserAsync(resetPassword.Email, true);
+        if (userEntity is null)
+        {
+            return BadRequest("User does not exist in the database");         
+        }
+
+        var resetPasswordRequestEntity =
+            await _repository.ResetPasswordRequest.GetPasswordResetRequestAsync(userEntity.Id, resetPassword.Code, true);
+        if (resetPasswordRequestEntity is null)
+        {
+            return BadRequest("Invalid reset password code");
+        }
+
+        var oldPasswordExists = string.IsNullOrEmpty(resetPasswordRequestEntity.OldPassword) is false;
+        switch (oldPasswordExists)
+        {
+            case true:
+                return BadRequest("Reset password link has expired");
+            case false when resetPasswordRequestEntity.ExpirationDate < DateTime.Now:
+                _repository.ResetPasswordRequest.DeletePasswordResetRequest(resetPasswordRequestEntity);
+                await _repository.SaveAsync();
+            
+                return BadRequest("Reset password link has expired");
+        }
+
+        resetPasswordRequestEntity.OldPassword = userEntity.Password;
+        userEntity.Password = resetPassword.Password;
+
+        await _repository.SaveAsync();
+        
         return Ok();
     }
     

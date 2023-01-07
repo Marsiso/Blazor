@@ -9,6 +9,7 @@ public interface IResetPasswordRequestRepository
         ResetPasswordRequestParameters resetPasswordRequestParameters, 
         bool trackChanges);
     Task<ResetPasswordRequestEntity> GetPasswordResetRequestAsync(int passwordResetRequestId, bool trackChanges);
+    Task<ResetPasswordRequestEntity> GetPasswordResetRequestAsync(int userId, string passwordResetRequestCode, bool trackChanges);
     void CreatePasswordResetRequest(ResetPasswordRequestEntity passwordResetRequest);
     void UpdatePasswordResetRequest(ResetPasswordRequestEntity passwordResetRequest);
     void DeletePasswordResetRequest(ResetPasswordRequestEntity passwordResetRequest);
