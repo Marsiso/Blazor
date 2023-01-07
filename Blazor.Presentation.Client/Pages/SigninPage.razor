@@ -1,0 +1,96 @@
+﻿@page "/account/register"
+@using Syncfusion.Blazor.Inputs
+@using Syncfusion.Blazor.Buttons
+@using Blazor.Shared.Entities.DataTransferObjects
+
+@if (_user is null)
+{
+    <p><strong>Loading ...</strong></p>
+}
+else
+{
+    <div id="sign-in-form-wrapper">
+        <div class="row">
+            <div class="col-md-1 col-lg-2 col-xl-3"></div>
+            <div class="col-12 col-md-10 col-lg-8 col-xl-6 text-center">
+                <h1>Signin New User</h1>
+                <h2>Registration Form</h2>
+                <EditForm Model="_user" OnValidSubmit="OnValidSubmit">
+                    <DataAnnotationsValidator></DataAnnotationsValidator>
+
+                    <SfTextBox @ref="@TextBoxFirstNameObj" @bind-Value="_user.FirstName" Placeholder='First Name' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
+                    <p><ValidationMessage For="@(() => _user.FirstName)"></ValidationMessage></p>
+                    <SfTextBox @ref="@TextBoxLastNameObj" @bind-Value="_user.LastName" Placeholder='Last Name' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
+                    <p><ValidationMessage For="@(() => _user.LastName)"></ValidationMessage></p>
+                    <SfTextBox @ref="@TextBoxEmailObj" @bind-Value="_user.Email" Placeholder='Email' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
+                    <p><ValidationMessage For="@(() => _user.Email)"></ValidationMessage></p>
+                    <SfTextBox @ref="@TextBoxPasswordObj" @bind-Value="_user.Password" Placeholder='Password' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
+                    <p><ValidationMessage For="@(() => _user.Password)"></ValidationMessage></p>
+                    <SfTextBox @ref="@TextBoxRepeatedPasswordObj" @bind-Value="_user.RepeatedPassword" Placeholder='Repeated Password' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
+                    <p><ValidationMessage For="@(() => _user.RepeatedPassword)"></ValidationMessage></p>
+                    <SfTextBox @ref="@TextBoxAddress" @bind-Value="_user.Address" Placeholder='Address' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
+                    <p><ValidationMessage For="@(() => _user.Address)"></ValidationMessage></p>
+                    <SfTextBox @ref="@TextBoxCountry" @bind-Value="_user.Country" Placeholder='Country' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
+                    <p><ValidationMessage For="@(() => _user.Country)"></ValidationMessage></p>
+
+                    <SfButton @ref="@ToogleSigninBtnObj" type="submit" IconCss="@SigninBtnIconCss" CssClass="@SigninBtnCssClass" Content="@SigninBtnContent" OnClick="@OnToggleSigninBtnClick"></SfButton>
+                </EditForm>
+            </div>
+            <div class="col-md-1 col-lg-2 col-xl-3"></div>
+        </div>
+    </div>
+}
+
+@code {
+    private SfTextBox TextBoxFirstNameObj;
+    private SfTextBox TextBoxLastNameObj;
+    private SfTextBox TextBoxPasswordObj;
+    private SfTextBox TextBoxRepeatedPasswordObj;
+    private SfTextBox TextBoxEmailObj;
+    private SfTextBox TextBoxAddress;
+    private SfTextBox TextBoxCountry;
+    private SfButton ToogleSigninBtnObj;
+    private string SigninBtnIconCss = "e-icons e-bullet-6";
+    private string SigninBtnContent = "Signin";
+    private string SigninBtnCssClass = "e-flat mt-4 w-100";
+    private readonly UserForCreationDto _user = new UserForCreationDto();
+
+    private void OnToggleSigninBtnClick()
+    {
+        if (ToogleSigninBtnObj.Content == "Signin")
+        {
+            this.SigninBtnContent = "";
+            this.SigninBtnCssClass = "e-flat mt-4 w-100";
+            this.SigninBtnIconCss = "e-icons e-refresh";
+        }
+        else
+        {
+            this.SigninBtnContent = "Signin";
+            this.SigninBtnCssClass = "e-flat mt-4 w-100";
+            this.SigninBtnIconCss = "e-icons e-bullet-6";
+        }
+    }
+
+    private Task OnValidSubmit(EditContext arg)
+    {
+        return Task.CompletedTask;
+    }
+
+}
+
+<style>
+    #sign-in-form-wrapper {
+        width: 100%;
+        text-align: left;
+        padding: 0px 20%;
+    }
+    .e-float-input.e-control-wrapper:not(.e-error) input:valid ~ label.e-float-text, .e-float-input.e-control-wrapper:not(.e-error) input ~ label.e-label-top.e-float-text {
+        color: #343a40;
+    }
+    .e-refresh::before {
+        content: '\e324';
+    }
+    .e-bullet-6::before {
+        content: '\e326';
+    }
+</style>

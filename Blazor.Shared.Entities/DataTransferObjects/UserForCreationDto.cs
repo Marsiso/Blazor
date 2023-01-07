@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Blazor.Shared.Entities.Validation;
 
 namespace Blazor.Shared.Entities.DataTransferObjects;
 
@@ -20,10 +21,15 @@ public sealed class UserForCreationDto
     [DataType(DataType.Text, ErrorMessage = "Last name must be text value type")]
     public string LastName { get; set; }
 
-    [Required(ErrorMessage = "Image alternative name is a required field")]
-    [MaxLength(50, ErrorMessage = "Maximum length for the image alternative name is 50 characters")]
+    [Required(ErrorMessage = " Password is a required field")]
+    [StringLength(50, ErrorMessage = "Password must be between 5 and 50 characters", MinimumLength = 5)]
     [DataType(DataType.Password, ErrorMessage = "Invalid password format")]
+    [RegularExpression(@"^.*(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*\(\)_\-+=]).*$", ErrorMessage = "Password must meet requirements")]
     public string Password { get; set; }
+    
+    [PasswordMatch(ComparisonProperty = nameof(Password), ErrorMessage = "Passwords doesn't match")]
+    //[Compare(nameof(Password), ErrorMessage = "Passwords doesn't match")]
+    public string RepeatedPassword { get; set; }
 
     [Required(ErrorMessage = "Address is a required field")]
     [MaxLength(100, ErrorMessage = "Maximum length for the address is 100 characters")]

@@ -55,10 +55,11 @@
         <AuthorizeView>
             <Authorized>
                 @*<SfButton CssClass="e-inherit" @onclick="BeginSignOut" IconCss="e-icons e-user" Content="@String.Join(' ', "Hello,", @context.User.Identity?.Name!, "   Log out")"><LoginDisplay></LoginDisplay></SfButton>*@
-                <SfButton CssClass="e-inherit" @onclick="BeginSignOut" IconCss="e-icons e-user" Content="Log out"><LoginDisplay></LoginDisplay></SfButton>
+                <SfButton CssClass="e-inherit" @onclick="BeginSignOut" IconCss="e-icons e-user" Content="Logout"><LoginDisplay></LoginDisplay></SfButton>
             </Authorized>
             <NotAuthorized>
-                <SfButton CssClass="e-inherit" @onclick="BeginLogin" IconCss="e-icons e-user" Content="Log in"><LoginDisplay></LoginDisplay></SfButton>
+                <SfButton CssClass="e-inherit" @onclick="BeginLogin" IconCss="e-icons e-user" Content="Login"><LoginDisplay></LoginDisplay></SfButton>
+                <SfButton CssClass="e-inherit" @onclick="BeginSignin" IconCss="e-icons e-user" Content="Signin"><LoginDisplay></LoginDisplay></SfButton>
             </NotAuthorized>
         </AuthorizeView>
     </SfAppBar>
@@ -87,6 +88,11 @@
     private void BeginLogin()
     {
         NavigationManager.NavigateTo("authentication/login");
+    }
+    
+    private void BeginSignin()
+    {
+        NavigationManager.NavigateTo("account/register");
     }
 }
 
