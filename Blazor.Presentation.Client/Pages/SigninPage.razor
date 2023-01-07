@@ -2,44 +2,54 @@
 @using Syncfusion.Blazor.Inputs
 @using Syncfusion.Blazor.Buttons
 @using Blazor.Shared.Entities.DataTransferObjects
+@using Blazor.Presentation.Client.Services
+@inject AccountService AccountService
+@inject NavigationManager NavigationManager
 
-@if (_user is null)
-{
-    <p><strong>Loading ...</strong></p>
-}
-else
-{
-    <div id="sign-in-form-wrapper">
-        <div class="row">
-            <div class="col-md-1 col-lg-2 col-xl-3"></div>
-            <div class="col-12 col-md-10 col-lg-8 col-xl-6 text-center">
-                <h1>Signin New User</h1>
-                <h2>Registration Form</h2>
-                <EditForm Model="_user" OnValidSubmit="OnValidSubmit">
-                    <DataAnnotationsValidator></DataAnnotationsValidator>
-
-                    <SfTextBox @ref="@TextBoxFirstNameObj" @bind-Value="_user.FirstName" Placeholder='First Name' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
-                    <p><ValidationMessage For="@(() => _user.FirstName)"></ValidationMessage></p>
-                    <SfTextBox @ref="@TextBoxLastNameObj" @bind-Value="_user.LastName" Placeholder='Last Name' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
-                    <p><ValidationMessage For="@(() => _user.LastName)"></ValidationMessage></p>
-                    <SfTextBox @ref="@TextBoxEmailObj" @bind-Value="_user.Email" Placeholder='Email' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
-                    <p><ValidationMessage For="@(() => _user.Email)"></ValidationMessage></p>
-                    <SfTextBox @ref="@TextBoxPasswordObj" @bind-Value="_user.Password" Placeholder='Password' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
-                    <p><ValidationMessage For="@(() => _user.Password)"></ValidationMessage></p>
-                    <SfTextBox @ref="@TextBoxRepeatedPasswordObj" @bind-Value="_user.RepeatedPassword" Placeholder='Repeated Password' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
-                    <p><ValidationMessage For="@(() => _user.RepeatedPassword)"></ValidationMessage></p>
-                    <SfTextBox @ref="@TextBoxAddress" @bind-Value="_user.Address" Placeholder='Address' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
-                    <p><ValidationMessage For="@(() => _user.Address)"></ValidationMessage></p>
-                    <SfTextBox @ref="@TextBoxCountry" @bind-Value="_user.Country" Placeholder='Country' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
-                    <p><ValidationMessage For="@(() => _user.Country)"></ValidationMessage></p>
-
-                    <SfButton @ref="@ToogleSigninBtnObj" type="submit" IconCss="@SigninBtnIconCss" CssClass="@SigninBtnCssClass" Content="@SigninBtnContent" OnClick="@OnToggleSigninBtnClick"></SfButton>
-                </EditForm>
+<AuthorizeView Context="_">
+    <Authorized>
+        <p>Please, signout to let register a new user.</p>
+    </Authorized>
+    <NotAuthorized>
+        @if (_user is null)
+        {
+            <p><strong>Loading ...</strong></p>
+        }
+        else
+        {
+            <div id="sign-in-form-wrapper">
+                <div class="row">
+                    <div class="col-md-1 col-lg-2 col-xl-3"></div>
+                    <div class="col-12 col-md-10 col-lg-8 col-xl-6 text-center">
+                        <h1>Signin New User</h1>
+                        <h2>Registration Form</h2>
+                        <EditForm Model="_user" OnValidSubmit="OnValidSubmit">
+                            <DataAnnotationsValidator></DataAnnotationsValidator>
+        
+                            <SfTextBox @ref="@TextBoxFirstNameObj" @bind-Value="_user.FirstName" Placeholder='First Name' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
+                            <p><ValidationMessage For="@(() => _user.FirstName)"></ValidationMessage></p>
+                            <SfTextBox @ref="@TextBoxLastNameObj" @bind-Value="_user.LastName" Placeholder='Last Name' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
+                            <p><ValidationMessage For="@(() => _user.LastName)"></ValidationMessage></p>
+                            <SfTextBox @ref="@TextBoxEmailObj" @bind-Value="_user.Email" Placeholder='Email' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
+                            <p><ValidationMessage For="@(() => _user.Email)"></ValidationMessage></p>
+                            <SfTextBox @ref="@TextBoxPasswordObj" @bind-Value="_user.Password" Placeholder='Password' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
+                            <p><ValidationMessage For="@(() => _user.Password)"></ValidationMessage></p>
+                            <SfTextBox @ref="@TextBoxRepeatedPasswordObj" @bind-Value="_user.RepeatedPassword" Placeholder='Repeated Password' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
+                            <p><ValidationMessage For="@(() => _user.RepeatedPassword)"></ValidationMessage></p>
+                            <SfTextBox @ref="@TextBoxAddress" @bind-Value="_user.Address" Placeholder='Address' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
+                            <p><ValidationMessage For="@(() => _user.Address)"></ValidationMessage></p>
+                            <SfTextBox @ref="@TextBoxCountry" @bind-Value="_user.Country" Placeholder='Country' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
+                            <p><ValidationMessage For="@(() => _user.Country)"></ValidationMessage></p>
+        
+                            <SfButton @ref="@ToogleSigninBtnObj" type="submit" IconCss="@SigninBtnIconCss" CssClass="@SigninBtnCssClass" Content="@SigninBtnContent" OnClick="@OnToggleSigninBtnClick"></SfButton>
+                        </EditForm>
+                    </div>
+                    <div class="col-md-1 col-lg-2 col-xl-3"></div>
+                </div>
             </div>
-            <div class="col-md-1 col-lg-2 col-xl-3"></div>
-        </div>
-    </div>
-}
+        }
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     private SfTextBox TextBoxFirstNameObj;
@@ -71,11 +81,13 @@ else
         }
     }
 
-    private Task OnValidSubmit(EditContext arg)
+    private async Task OnValidSubmit(EditContext arg)
     {
-        return Task.CompletedTask;
+        if (await AccountService.TryCreateUserAsync(_user))
+        {
+            NavigationManager.NavigateTo("#");
+        }
     }
-
 }
 
 <style>

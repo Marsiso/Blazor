@@ -25,6 +25,8 @@ builder.Services.AddHttpClient("Default", client => client.BaseAddress = new Uri
         return handler;
     });
 
+builder.Services.AddHttpClient("Anonymous", client => client.BaseAddress = new Uri("https://localhost:11001/api/"));
+
 builder.Services.AddAuthorizationCore(options =>
 {
     options.AddPolicy(Policies.FromCzechRepublic, Policies.FromCzechRepublicPolicy());
@@ -39,6 +41,7 @@ builder.Services.AddOidcAuthentication(options =>
 
 builder.Services.AddSingleton<CarouselItemService>();
 builder.Services.AddSingleton<ImageService>();
+builder.Services.AddSingleton<AccountService>();
 builder.Services.AddSyncfusionBlazor();
 
 await builder.Build().RunAsync();

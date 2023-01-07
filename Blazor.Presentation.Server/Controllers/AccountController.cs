@@ -5,6 +5,7 @@ using Blazor.Presentation.Server.Services;
 using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DataTransferObjects;
 using Blazor.Shared.Entities.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ILogger = Serilog.ILogger;
 
@@ -14,6 +15,7 @@ namespace Blazor.Presentation.Server.Controllers;
 [ApiExplorerSettings(GroupName = "v1")]
 [Route("api/[controller]")]
 [ApiController]
+[AllowAnonymous]
 public sealed class AccountController : ControllerBase
 {
     private readonly Serilog.ILogger _logger;
