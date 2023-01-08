@@ -4,7 +4,7 @@ using Blazor.Shared.Entities.Validation;
 
 namespace Blazor.Shared.Entities.DataTransferObjects;
 
-public sealed class ResetPasswordDto
+public sealed class ResetPasswordForCreationDto
 {
     [Required(ErrorMessage = "Email is a required field")]
     [MaxLength(50, ErrorMessage = "Maximum length for the email is 50 characters")]

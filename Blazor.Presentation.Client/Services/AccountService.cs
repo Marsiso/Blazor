@@ -2,6 +2,7 @@
 using System.Net.Http.Json;
 using Blazor.Shared.Entities.Constants;
 using Blazor.Shared.Entities.DataTransferObjects;
+using Blazor.Shared.Entities.RequestFeatures;
 using Polly;
 
 namespace Blazor.Presentation.Client.Services;
@@ -33,9 +34,9 @@ public class AccountService
         return policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode;
     }
 
-    public async Task<bool> TryResetPasswordAsync(ResetPasswordDto resetPasswordRequest)
+    public async Task<bool> TryResetPasswordAsync(ResetPasswordForCreationDto resetPasswordForCreationRequest)
     {
-        if (resetPasswordRequest is null)
+        if (resetPasswordForCreationRequest is null)
         {
             return false;
         }
@@ -46,8 +47,38 @@ public class AccountService
             .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
         
         var policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () => await httpClient.PutAsJsonAsync(
-            $"Account/Password/Reset", resetPasswordRequest));
+            $"Account/Password/Reset", resetPasswordForCreationRequest));
         
         return policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode;
+    }
+    
+    public async Task<List<ResetPasswordRequestDto>> GetAllResetPasswordRequestsAsync(ResetPasswordRequestParameters parameters)
+    {
+        if (parameters is null)
+        {
+            return new List<ResetPasswordRequestDto>();
+        }
+
+        var httpClient = _httpClientFactory.CreateClient("Anonymous");
+        var retryPolicy = Policy<IEnumerable<ResetPasswordRequestDto>>
+            .Handle<HttpRequestException>()
+            .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
+
+        var uri = String.Format("Account/Password/Reset?{0}={1}&{2}={3}&{4}={5}&{6}={7}&{8}={9}&{10}={11}&{12}={13}&{14}={15}",
+            nameof(parameters.MinIssueDate), parameters.MinIssueDate,
+            nameof(parameters.MaxIssueDate), parameters.MaxIssueDate,
+            nameof(parameters.MinExpirationDate), parameters.MinExpirationDate,
+            nameof(parameters.MaxExpirationDate), parameters.MaxExpirationDate,
+            nameof(parameters.PageSize), parameters.PageSize,
+            nameof(parameters.PageNumber), parameters.PageNumber,
+            nameof(parameters.SearchTerm), parameters.SearchTerm,
+            nameof(parameters.OrderBy), parameters.OrderBy);
+        
+        var policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () => 
+            await httpClient.GetFromJsonAsync<IEnumerable<ResetPasswordRequestDto>>(uri));
+        
+        return policyResult.Outcome == OutcomeType.Successful && policyResult.Result is not null 
+            ? policyResult.Result.ToList()
+            : new List<ResetPasswordRequestDto>();
     }
 }

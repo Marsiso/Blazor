@@ -11,6 +11,16 @@
 <div class="appbar-control-container">
     <SfAppBar ColorMode="AppBarColor.Dark">
         <SfButton CssClass="e-inherit" IconCss="e-icons e-home" OnClick="OnHomeBtnClick"></SfButton>
+        <AuthorizeView Policy="@Policies.FromFrance" Context="_">
+            <Authorized>
+                <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Account">
+                    <DropDownMenuItems>
+                       <DropDownMenuItem Text="Manage Password Reset Requests" IconCss="e-icons e-field-settings" Url="/Manage/Account/Password/Reset/"></DropDownMenuItem>
+                    </DropDownMenuItems>
+                </SfDropDownButton>
+            </Authorized>
+        </AuthorizeView>
+        
         <AuthorizeView>
             <Authorized>
                 <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Carousel">

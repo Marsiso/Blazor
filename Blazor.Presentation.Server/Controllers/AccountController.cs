@@ -5,6 +5,7 @@ using Blazor.Presentation.Server.Services;
 using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DataTransferObjects;
 using Blazor.Shared.Entities.Models;
+using Blazor.Shared.Entities.RequestFeatures;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ILogger = Serilog.ILogger;
@@ -41,7 +42,7 @@ public sealed class AccountController : ControllerBase
         return Ok();
     }
     
-    [HttpGet("", Name = "GetUserAsync")]
+    [HttpGet(Name = "GetUserAsync")]
     [ServiceFilter(typeof(ValidateMediaTypeAttribute), Order = 1)]
     [ServiceFilter(typeof(UserExistsValidationFilter), Order = 2)]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -61,7 +62,7 @@ public sealed class AccountController : ControllerBase
         return Ok(userDto);
     }
     
-    [HttpGet("Password/Reset", Name = "SendPasswordResetLinkAsync")]
+    [HttpPost("Password/Reset", Name = "SendPasswordResetLinkAsync")]
     [ServiceFilter(typeof(ValidateMediaTypeAttribute), Order = 1)]
     [ServiceFilter(typeof(UserExistsValidationFilter), Order = 2)]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -92,21 +93,21 @@ public sealed class AccountController : ControllerBase
     [ServiceFilter(typeof(ValidationFilter), Order = 1)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> UpdatePasswordAsync([FromBody] ResetPasswordDto resetPassword)
+    public async Task<IActionResult> UpdatePasswordAsync([FromBody] ResetPasswordForCreationDto resetPasswordForCreation)
     {
-        if (String.IsNullOrEmpty(resetPassword.Code))
+        if (String.IsNullOrEmpty(resetPasswordForCreation.Code))
         {
             return BadRequest("Reset password request code can not be null or empty string");
         }
 
-        var userEntity = await _repository.User.GetUserAsync(resetPassword.Email, true);
+        var userEntity = await _repository.User.GetUserAsync(resetPasswordForCreation.Email, true);
         if (userEntity is null)
         {
             return BadRequest("User does not exist in the database");         
         }
 
         var resetPasswordRequestEntity =
-            await _repository.ResetPasswordRequest.GetPasswordResetRequestAsync(userEntity.Id, resetPassword.Code, true);
+            await _repository.ResetPasswordRequest.GetPasswordResetRequestAsync(userEntity.Id, resetPasswordForCreation.Code, true);
         if (resetPasswordRequestEntity is null)
         {
             return BadRequest("Invalid reset password code");
@@ -125,7 +126,7 @@ public sealed class AccountController : ControllerBase
         }
 
         resetPasswordRequestEntity.OldPassword = userEntity.Password;
-        userEntity.Password = resetPassword.Password;
+        userEntity.Password = resetPasswordForCreation.Password;
 
         await _repository.SaveAsync();
         
@@ -180,5 +181,29 @@ public sealed class AccountController : ControllerBase
         
         _logger.Information("User has been successfully updated");
         return NoContent();
+    }
+
+    [HttpGet("Password/Reset", Name = "GetAllResetPasswordRequestsAsync")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetAllResetPasswordRequestsAsync(
+        [FromRoute] ResetPasswordRequestParameters requestParameters)
+    {
+        var resetPasswordRequests =
+            await _repository.ResetPasswordRequest.GetAllPasswordResetRequestsAsync(requestParameters, false);
+
+        if (resetPasswordRequests is null)
+        {
+            return NotFound("No entries match request parameters for reset password requests");
+        }
+
+        foreach (var resetPasswordRequest in resetPasswordRequests)
+        {
+            resetPasswordRequest.User = await _repository.User.GetUserAsync(resetPasswordRequest.UserId, false);
+        }
+
+        var resetPasswordRequestsDto = _mapper.Map<IEnumerable<ResetPasswordRequestDto>>(resetPasswordRequests);
+        return Ok(resetPasswordRequestsDto);
     }
 }

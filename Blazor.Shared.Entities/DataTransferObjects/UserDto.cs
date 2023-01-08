@@ -15,8 +15,6 @@ public sealed class UserDto
 
     public string LastName { get; set; }
 
-    public string Password { get; set; }
-
     public bool IsActive { get; set; } = true;
 
     public string Address { get; set; }
