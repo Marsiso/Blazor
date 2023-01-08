@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text;
 using AutoMapper;
 using Blazor.Presentation.Server.Filters;
 using Blazor.Presentation.Server.Services;
@@ -100,17 +101,17 @@ public sealed class AccountController : ControllerBase
             return BadRequest("Reset password request code can not be null or empty string");
         }
 
-        var userEntity = await _repository.User.GetUserAsync(resetPasswordForCreation.Email, true);
-        if (userEntity is null)
-        {
-            return BadRequest("User does not exist in the database");         
-        }
-
         var resetPasswordRequestEntity =
-            await _repository.ResetPasswordRequest.GetPasswordResetRequestAsync(userEntity.Id, resetPasswordForCreation.Code, true);
+            await _repository.ResetPasswordRequest.GetPasswordResetRequestAsync(resetPasswordForCreation.Code, true);
         if (resetPasswordRequestEntity is null)
         {
             return BadRequest("Invalid reset password code");
+        }
+        
+        var userEntity = await _repository.User.GetUserAsync(resetPasswordRequestEntity.UserId, true);
+        if (userEntity is null)
+        {
+            return BadRequest("User does not exist in the database");         
         }
 
         var oldPasswordExists = string.IsNullOrEmpty(resetPasswordRequestEntity.OldPassword) is false;
@@ -205,5 +206,44 @@ public sealed class AccountController : ControllerBase
 
         var resetPasswordRequestsDto = _mapper.Map<IEnumerable<ResetPasswordRequestDto>>(resetPasswordRequests);
         return Ok(resetPasswordRequestsDto);
+    }
+    
+    [HttpPost("Password/Reset/Email/Template", Name = "CreateResetPasswordEmailTemplateAsync")]
+    [ServiceFilter(typeof(ValidationFilter), Order = 1)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CreateResetPasswordEmailTemplateAsync(
+        [FromServices] IWebHostEnvironment webHost, 
+        [FromBody] ResetPasswordEmailTemplateForCreationDto template)
+    {
+        var hasLink = template.Payload.Contains("[LINK]");
+        var hasRecipient = template.Payload.Contains("[RECIPIENT]");
+        
+        switch (hasLink)
+        {
+            case false when !hasRecipient:
+                return UnprocessableEntity("Reset password template must contain [LINK] && [RECIPIENT] attribute at least once");
+            case false:
+                return UnprocessableEntity("Reset password template must contain [LINK] attribute at least once");
+        }
+
+        if (!hasRecipient)
+        {
+            return UnprocessableEntity("Reset password template must contain [RECIPIENT] attribute at least once");
+        }
+
+        var filePath = Path.Combine(webHost.WebRootPath, "emails", "default-email-template.rtf");
+        if (System.IO.File.Exists(filePath))
+        {
+            System.IO.File.Delete(filePath);
+        }
+
+        await using (var fs = System.IO.File.Create(filePath))
+        {
+            var content = new UTF8Encoding(true).GetBytes(template.Payload);    
+            fs.Write(content, 0, content.Length);
+        }
+
+        return Created(HttpContext.Connection.LocalIpAddress + "api/Password/Reset/Email/Template", new { });
     }
 }

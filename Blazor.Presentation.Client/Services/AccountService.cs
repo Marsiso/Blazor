@@ -81,4 +81,19 @@ public class AccountService
             ? policyResult.Result.ToList()
             : new List<ResetPasswordRequestDto>();
     }
+
+    public async Task<bool> TryCreateResetPasswordEmailTemplate(ResetPasswordEmailTemplateForCreationDto template)
+    {
+        if (template is null) return false;
+
+        var httpClient = _httpClientFactory.CreateClient("Default");
+        var retryPolicy = Policy<HttpResponseMessage>
+            .Handle<HttpRequestException>()
+            .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
+        
+        var policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () => 
+            await httpClient.PostAsJsonAsync("Account/Password/Reset/Email/Template", template));
+        
+        return policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode;
+    }
 }

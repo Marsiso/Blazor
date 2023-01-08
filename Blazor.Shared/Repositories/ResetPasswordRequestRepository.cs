@@ -33,9 +33,8 @@ public sealed class ResetPasswordRequestRepository : RepositoryBase<ResetPasswor
         await FindByCondition(passwordResetRequest => passwordResetRequest.Id == passwordResetRequestId, trackChanges)
             .SingleOrDefaultAsync();
     
-    public async Task<ResetPasswordRequestEntity> GetPasswordResetRequestAsync(int userId, string passwordResetRequestCode, bool trackChanges) =>
+    public async Task<ResetPasswordRequestEntity> GetPasswordResetRequestAsync(string passwordResetRequestCode, bool trackChanges) =>
         await FindByCondition(passwordResetRequest => 
-                passwordResetRequest.UserId == userId && 
                 passwordResetRequest.Code == passwordResetRequestCode, trackChanges)
             .SingleOrDefaultAsync();
 
