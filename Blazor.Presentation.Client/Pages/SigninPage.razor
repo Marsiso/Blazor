@@ -28,27 +28,28 @@
         
                             <SfTextBox @ref="@TextBoxFirstNameObj" @bind-Value="_user.FirstName" Placeholder='First Name' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
                             <p><ValidationMessage For="@(() => _user.FirstName)"></ValidationMessage></p>
+                            
                             <SfTextBox @ref="@TextBoxLastNameObj" @bind-Value="_user.LastName" Placeholder='Last Name' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
                             <p><ValidationMessage For="@(() => _user.LastName)"></ValidationMessage></p>
+                            
                             <SfTextBox @ref="@TextBoxEmailObj" @bind-Value="_user.Email" Placeholder='Email' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
                             <p><ValidationMessage For="@(() => _user.Email)"></ValidationMessage></p>
+                            
                             <SfTextBox @ref="@TextBoxPasswordObj" @bind-Value="_user.Password" Placeholder='Password' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
                             <p><ValidationMessage For="@(() => _user.Password)"></ValidationMessage></p>
+                            
                             <SfTextBox @ref="@TextBoxRepeatedPasswordObj" @bind-Value="_user.RepeatedPassword" Placeholder='Repeated Password' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
                             <p><ValidationMessage For="@(() => _user.RepeatedPassword)"></ValidationMessage></p>
+                            
                             <SfTextBox @ref="@TextBoxAddress" @bind-Value="_user.Address" Placeholder='Address' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
                             <p><ValidationMessage For="@(() => _user.Address)"></ValidationMessage></p>
+                            
                             <SfTextBox @ref="@TextBoxCountry" @bind-Value="_user.Country" Placeholder='Country' FloatLabelType='@FloatLabelType.Auto' ShowClearButton=true></SfTextBox>
                             <p><ValidationMessage For="@(() => _user.Country)"></ValidationMessage></p>
         
-                            @if (_isBlocked)
-                            {
-                                <SfButton @ref="@ToogleSigninBtnObj" type="submit" IconCss="@SigninBtnIconCss" CssClass="@SigninBtnCssClass" Content="@SigninBtnContent" OnClick="@OnToggleSigninBtnClick" disabled></SfButton>
-                            }
-                            else
-                            {
-                                <SfButton @ref="@ToogleSigninBtnObj" type="submit" IconCss="@SigninBtnIconCss" CssClass="@SigninBtnCssClass" Content="@SigninBtnContent" OnClick="@OnToggleSigninBtnClick"></SfButton>
-                            }
+                            <br/>
+                            <p><a href="/account/password/reset/request">Did you forget password? Click to reset your password.</a></p>
+                            <SfButton @ref="@ToogleSigninBtnObj" type="submit" IconCss="@SigninBtnIconCss" CssClass="@SigninBtnCssClass" Content="@SigninBtnContent" OnClick="@OnToggleSigninBtnClick" Disabled="_isBlocked"></SfButton>
                         </EditForm>
                     </div>
                     <div class="col-md-1 col-lg-2 col-xl-3"></div>

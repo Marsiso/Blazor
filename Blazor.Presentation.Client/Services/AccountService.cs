@@ -111,4 +111,17 @@ public class AccountService
             ? policyResult.Result 
             : new ResetPasswordEmailTemplateDto { Payload = "<p><strong>Failed to load data ...</strong></p>" };
     }
+
+    public async Task<bool> TrySendResetPasswordLinkAsync(UserEmailDto email)
+    {
+        var httpClient = _httpClientFactory.CreateClient("Anonymous");
+        var retryPolicy = Policy<HttpResponseMessage>
+            .Handle<HttpRequestException>()
+            .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
+        
+        var policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () => 
+            await httpClient.PostAsJsonAsync("Account/Password/Reset", email));
+
+        return policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode;
+    }
 }

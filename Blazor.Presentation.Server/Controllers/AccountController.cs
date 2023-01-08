@@ -70,7 +70,7 @@ public sealed class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> SendPasswordResetLinkAsync(/*[FromServices] IConfiguration configuration,*/[FromBody] UserEmailDto userEmail)
+    public async Task<IActionResult> SendPasswordResetLinkAsync([FromBody] UserEmailDto userEmail)
     {
         if (HttpContext.Items[nameof(UserEntity)] is not UserEntity userEntity)
         {
@@ -255,17 +255,14 @@ public sealed class AccountController : ControllerBase
     {
         var filePath = Path.Combine(webHost.WebRootPath, "emails", "default-email-template.rtf");
 
-        if (System.IO.File.Exists(filePath))
-        {
-            using var sr = System.IO.File.OpenText(filePath);
+        if (!System.IO.File.Exists(filePath)) return Ok(new ResetPasswordEmailTemplateDto { Payload = String.Empty });
+        using var sr = System.IO.File.OpenText(filePath);
         
-            StringBuilder stringBuilder = new();
-            while (await sr.ReadLineAsync() is { } line) stringBuilder.Append(line);
-            var payload = stringBuilder.ToString();
+        StringBuilder stringBuilder = new();
+        while (await sr.ReadLineAsync() is { } line) stringBuilder.Append(line);
+        var payload = stringBuilder.ToString();
 
-            return Ok(new ResetPasswordEmailTemplateDto { Payload = payload });
-        }
+        return Ok(new ResetPasswordEmailTemplateDto { Payload = payload });
 
-        return Ok(new ResetPasswordEmailTemplateDto { Payload = String.Empty });
     }
 }
