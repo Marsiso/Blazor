@@ -214,7 +214,7 @@ public sealed class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateResetPasswordEmailTemplateAsync(
         [FromServices] IWebHostEnvironment webHost, 
-        [FromBody] ResetPasswordEmailTemplateForCreationDto template)
+        [FromBody] ResetPasswordEmailTemplateDto template)
     {
         var hasLink = template.Payload.Contains("[LINK]");
         var hasRecipient = template.Payload.Contains("[RECIPIENT]");
@@ -245,5 +245,27 @@ public sealed class AccountController : ControllerBase
         }
 
         return Created(HttpContext.Connection.LocalIpAddress + "api/Password/Reset/Email/Template", new { });
+    }
+    
+    [HttpGet("Password/Reset/Email/Template", Name = "GetResetPasswordEmailTemplateAsync")]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetResetPasswordEmailTemplateAsync(
+        [FromServices] IWebHostEnvironment webHost)
+    {
+        var filePath = Path.Combine(webHost.WebRootPath, "emails", "default-email-template.rtf");
+
+        if (System.IO.File.Exists(filePath))
+        {
+            using var sr = System.IO.File.OpenText(filePath);
+        
+            StringBuilder stringBuilder = new();
+            while (await sr.ReadLineAsync() is { } line) stringBuilder.Append(line);
+            var payload = stringBuilder.ToString();
+
+            return Ok(new ResetPasswordEmailTemplateDto { Payload = payload });
+        }
+
+        return Ok(new ResetPasswordEmailTemplateDto { Payload = String.Empty });
     }
 }

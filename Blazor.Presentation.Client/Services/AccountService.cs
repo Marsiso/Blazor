@@ -82,7 +82,7 @@ public class AccountService
             : new List<ResetPasswordRequestDto>();
     }
 
-    public async Task<bool> TryCreateResetPasswordEmailTemplate(ResetPasswordEmailTemplateForCreationDto template)
+    public async Task<bool> TryCreateResetPasswordEmailTemplate(ResetPasswordEmailTemplateDto template)
     {
         if (template is null) return false;
 
@@ -95,5 +95,20 @@ public class AccountService
             await httpClient.PostAsJsonAsync("Account/Password/Reset/Email/Template", template));
         
         return policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode;
+    }
+    
+    public async Task<ResetPasswordEmailTemplateDto> GetResetPasswordEmailTemplate()
+    {
+        var httpClient = _httpClientFactory.CreateClient("Default");
+        var retryPolicy = Policy<ResetPasswordEmailTemplateDto>
+            .Handle<HttpRequestException>()
+            .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
+        
+        var policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () => 
+            await httpClient.GetFromJsonAsync<ResetPasswordEmailTemplateDto>("Account/Password/Reset/Email/Template"));
+
+        return policyResult.Outcome == OutcomeType.Successful 
+            ? policyResult.Result 
+            : new ResetPasswordEmailTemplateDto { Payload = "<p><strong>Failed to load data ...</strong></p>" };
     }
 }

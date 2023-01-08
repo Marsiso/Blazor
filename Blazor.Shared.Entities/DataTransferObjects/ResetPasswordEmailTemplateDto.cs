@@ -3,7 +3,7 @@ using Blazor.Shared.Entities.Validation;
 
 namespace Blazor.Shared.Entities.DataTransferObjects;
 
-public sealed class ResetPasswordEmailTemplateForCreationDto
+public sealed class ResetPasswordEmailTemplateDto
 {
     [Required(ErrorMessage = "Property {0} is required")]
     [StringLength(1000, ErrorMessage = "Minimal char lenght for {0} property is {2} and maximal {1}")]

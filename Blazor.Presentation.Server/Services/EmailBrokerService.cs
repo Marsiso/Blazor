@@ -15,9 +15,10 @@ public sealed class EmailBrokerService
     private readonly bool _enabledSsl;
     private readonly string _senderEmail;
     private readonly string _senderPassword;
-    private string _senderName;
+    private readonly string _senderName;
+    private readonly string _template;
 
-    public EmailBrokerService(IConfiguration configuration, ILogger logger)
+    public EmailBrokerService(IConfiguration configuration, ILogger logger, IWebHostEnvironment webHost)
     {
         _logger = logger;
         _host = configuration.GetSection("Smtp:Host").Value;
@@ -26,6 +27,14 @@ public sealed class EmailBrokerService
         _senderEmail = configuration.GetSection("Smtp:Sender:Email").Value;
         _senderPassword = configuration.GetSection("Smtp:Sender:Password").Value;
         _senderName = configuration.GetSection("Smtp:Sender:Name").Value;
+        var filePath = Path.Combine(webHost.WebRootPath, "emails", "default-email-template.rtf");
+        
+        using StreamReader sr = File.OpenText(filePath);
+        
+        StringBuilder stringBuilder = new();
+        while (sr.ReadLine() is { } line) stringBuilder.Append(line);
+
+        _template = stringBuilder.ToString();
     }
 
     public async Task<bool> TrySendResetPasswordLink(string recipientEmail, string recipientName, string passwordResetLink)
@@ -44,12 +53,14 @@ public sealed class EmailBrokerService
 
         if (!TryBuildResetPasswordTemplate(recipientEmail, recipientName, passwordResetLink, out var template))
             return false;
+
+        var email = _template.Replace("[LINK]", passwordResetLink).Replace("[RECIPIENT]", recipientName);
         
         var emailResponse = await Email
             .From(_senderEmail, _senderName)
             .To(recipientEmail, String.IsNullOrEmpty(recipientName) ? recipientEmail : recipientName)
             .Subject("Account")
-            .UsingTemplate(template, new {  })
+            .Body(email, true)
             .SendAsync();
             
         return emailResponse.Successful;
