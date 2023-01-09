@@ -1,6 +1,10 @@
 ﻿using System.Text;
+using AutoMapper;
+using Blazor.Presentation.Server.Filters;
+using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DataTransferObjects;
 using Blazor.Shared.Entities.DbContexts;
+using Blazor.Shared.Entities.Models;
 using IdentityModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
@@ -12,19 +16,19 @@ namespace Blazor.Presentation.Server.Controllers;
 [ApiExplorerSettings(GroupName = "v1")]
 [Route("api/[controller]")]
 [ApiController]
-public sealed partial class HomeController : ControllerBase
+public sealed class HomeController : ControllerBase
 {
     [HttpOptions(Name = "GetHomeOptions")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetHomeOptions()
     {
-        Response.Headers.Add("Allow", "GET");
+        Response.Headers.Add("Allow", "GET, POST");
 
         return Ok();
     }
 
-    [HttpGet("Products", Name = nameof(GetAllPricedProductsAsync))]
+    [HttpGet("Cart", Name = nameof(GetAllPricedProductsAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ResponseCache(CacheProfileName = "120SecondsDuration")]
@@ -84,5 +88,25 @@ public sealed partial class HomeController : ControllerBase
         }
         
         return Ok(processedProducts);
+    }
+    
+    [HttpPost("Cart", Name = nameof(ProcessShoppingCartAsync))]
+    [ServiceFilter(typeof(ValidationFilter))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ProcessShoppingCartAsync(
+        [FromServices] IRepositoryManager repository,
+        [FromServices] IMapper autoMapper,
+        [FromServices] IWebHostEnvironment webHost,
+        [FromBody] OrderForCreationDto order)
+    {
+        var orderEntity = autoMapper.Map<OrderEntity>(order);
+        orderEntity.DateTimeCreated = DateTime.Now;
+        repository.Order.CreateOrder(orderEntity);
+        await repository.SaveAsync();
+        
+        return Ok();
     }
 }

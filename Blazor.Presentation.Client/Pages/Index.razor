@@ -135,7 +135,7 @@ Showcasing pictures taken around the world ...
         
         
         var policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () =>
-            await httpClient.GetFromJsonAsync<ProcessedProduct[]>("Home/Products"));
+            await httpClient.GetFromJsonAsync<ProcessedProduct[]>("Home/Cart"));
 
         if (policyResult.Outcome == OutcomeType.Successful)
         {

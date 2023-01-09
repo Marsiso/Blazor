@@ -13,6 +13,9 @@
 @using Syncfusion.Blazor.Popups
 @using System.Text
 @using System.Globalization
+@using System.Net.Http.Headers
+@using Polly
+@using Polly.Retry
 @using EditMode = Syncfusion.Blazor.Grids.EditMode
 @inject NavigationManager NavigationManager
 @inject SignOutSessionStateManager SignOutManager
@@ -119,8 +122,16 @@
                        </SfGrid>
                     </Content>
                     <FooterTemplate>
-                        <SfButton Content="Back" CssClass="e-flat" OnClick="@DlgButtonClick"></SfButton>
-                        <SfButton Content="Buy"  CssClass="e-flat" OnClick="@DlgButtonClick"></SfButton>
+                        <AuthorizeView Context="ShoppingContext">
+                            <Authorized>
+                                <SfButton Content="Back" CssClass="e-flat" OnClick="@DlgButtonClick"></SfButton>
+                                <SfButton Content="Buy" CssClass="e-flat" OnClick="@OnBuyBtnClick"></SfButton>
+                            </Authorized>
+                            <NotAuthorized>
+                                <SfButton Content="Back" CssClass="e-flat" OnClick="@DlgButtonClick"></SfButton>
+                                <SfButton Content="Buy" CssClass="e-flat" OnClick="@OnBuyBtnClick" Disabled="true"></SfButton>
+                            </NotAuthorized>
+                        </AuthorizeView>
                     </FooterTemplate>
                 </DialogTemplates>
             </SfDialog>
@@ -149,6 +160,12 @@
 
     [Inject]
     public ISessionStorageService SessionStorageService { get; set; }
+    
+    [Inject]
+    IHttpClientFactory HttpClientFactory { get; set; }
+
+    [Inject]
+    public AuthenticationStateProvider AuthenticationStateProvider { get; set; }
 
     protected override async Task OnInitializedAsync() => ShoppingCart = await LocalStorageService.GetAsync<ShoppingCart>(nameof(Blazor.Shared.Entities.DataTransferObjects.ShoppingCart)) ?? new ShoppingCart();
 
@@ -196,6 +213,46 @@
         }
     }
 
+    private async Task OnBuyBtnClick()
+    {
+        if (AuthenticationStateProvider is not null)
+        {
+            var httpClient = HttpClientFactory.CreateClient("Anonymous");
+            httpClient.DefaultRequestHeaders.Accept.Clear();
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            AsyncRetryPolicy<HttpResponseMessage> retryPolicy = Policy<HttpResponseMessage>
+                .Handle<HttpRequestException>()
+                .WaitAndRetryAsync(Blazor.Shared.Entities.Constants.Constants.MaxHttpRequestRetries, times => TimeSpan.FromMilliseconds(times * 100));
+
+            var order = new OrderForCreationDto
+            {
+                TotalPrice = ShoppingCart.TotalCost(),
+                OrderNumber = Guid.NewGuid().ToString(),
+                OrderItems = new List<OrderItemForCreationDto>(),
+                UserId = int.Parse((await AuthenticationStateProvider.GetAuthenticationStateAsync()).User.Claims.SingleOrDefault(x => x.Type.ToString().Contains("sub"))!.Value)
+            };
+        
+            foreach (var product in ShoppingCart.Items.Values)
+            {
+                order.OrderItems.Add(new OrderItemForCreationDto
+                {
+                    Amount = product.ProductQuantity,
+                    Price = product.ProductPrice,
+                    ProductId = product.ProductId
+                });
+            }
+        
+            var policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () =>
+                await httpClient.PostAsJsonAsync("Home/Cart", order));
+
+            if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode)
+            {
+                ShoppingCart.Items.Clear();
+            }
+            
+            await this._dialogObj.HideAsync();
+        }
+    }
 }
 
 
