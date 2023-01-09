@@ -16,9 +16,11 @@ public sealed class ProductEntity
     [Column("product_price"), Required(ErrorMessage = "Product price is a required field")]
     [Range(0, double.MaxValue, ErrorMessage = "Product price must be ranging from {2} to {1}.")]
     public double Price { get; set; }
-    
-    [Column("fk_carousel_item"), ForeignKey(nameof(CarouselItemEntity))]
+
+    [Column("fk_carousel_item")]
+    [ForeignKey(nameof(CarouselItemEntity))]
     public int CarouselItemId { get; set; }
 
     public CarouselItemEntity CarouselItem { get; set; }
+    public ICollection<OrderItemEntity> OrderItems { get; set; }
 }
