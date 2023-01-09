@@ -1,7 +1,15 @@
 ﻿@page "/"
 @page "/Home"
 @page "/Index"
-@using Syncfusion.Blazor.Navigations
+@using System.Net.Http.Headers
+@using Blazor.Shared.Entities.DataTransferObjects
+@using Blazor.Shared.Entities.Constants
+@using Polly.Retry
+@using Polly
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Cards
 
 <PageTitle>Index</PageTitle>
 
@@ -38,9 +46,103 @@ Showcasing pictures taken around the world ...
     </SfCarousel>
 </div>
 
+@if (_products is not null)
+{
+    <div class="row mt-4 mb-2">
+        <div class="col">
+            <SfGrid  ID="product-grid" DataSource="_products" AllowPaging="true" AllowSorting="true"
+                     AllowFiltering="true" AllowGrouping="true" AllowReordering="true" ShowColumnMenu="true" 
+                     AllowSelection="false" EnableHover="false">
+                <GridEvents TValue="ProcessedProduct" OnActionFailure="@OnActionFailure"></GridEvents>
+                <GridPageSettings PageSize="10"></GridPageSettings>
+                <GridColumns>
+                    <GridColumn Field=@nameof(ProcessedProduct.ProductName) HeaderText="Name" TextAlign="TextAlign.Center" Width="400"></GridColumn>
+                    <GridColumn HeaderText="Description" TextAlign="TextAlign.Center" Field=@nameof(ProcessedProduct.ImageCaption)>
+                        <Template>
+                             @{
+                                if (context is ProcessedProduct product)
+                                {
+                                    <div class="d-inline-flex">
+                                        @if (String.IsNullOrEmpty(product.ImageSrc) is false)
+                                        {
+                                            <img src="@product.ImageSrc" alt="@product.ImageAlt" style="height: calc(10vw / 1.78 - 1px);  margin-right: 10px;"/>
+                                        }
+                                        else
+                                        {
+                                            <img src="images/image-placeholder.jpg" alt="@product.ImageAlt" style="height: calc(10vw / 1.78 - 1px); margin-right: 10px;"/>
+                                        }
+                                        
+                                        <div class="text-wrap">
+                                            <strong>@product.ProductName</strong><br/>
+                                            @product.ImageCaption
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </Template>
+                    </GridColumn>
+                    <GridColumn Field=@nameof(ProcessedProduct.ProductPrice) HeaderText="Price" Format="### ### ###.00 CZK" Type="ColumnType.Number" TextAlign="TextAlign.Center" Width="180px"></GridColumn>
+                    <GridColumn HeaderText="Cart" TextAlign="TextAlign.Center" Width="90">
+                            <Template>
+                                 @{
+                                    if (context is ProcessedProduct product)
+                                    {
+                                        <SfButton CssClass="e-round bg-dark border-0" @onclick="@(() => OnBtnBuyClick(product.ProductId))" IsPrimary="true">
+                                            <SfIcon Name="IconName.Plus" IconCss="text-white"></SfIcon>
+                                        </SfButton>
+                                    }
+                                }
+                            </Template>
+                        </GridColumn>
+                </GridColumns>
+            </SfGrid>
+        </div>
+    </div>
+}
+
+
 <SurveyPrompt Title="How do you feel about Blazor WebAssembly?" />
 
 @*<LoginDisplay></LoginDisplay>*@
+
+@code {
+    [Inject]
+    IHttpClientFactory HttpClientFactory { get; set; }
+
+    private ProcessedProduct[] _products;
+
+    protected override Task OnInitializedAsync() => GetProductsAsync();
+
+    private async Task GetProductsAsync()
+    {
+        var httpClient = HttpClientFactory.CreateClient("Default");
+        httpClient.DefaultRequestHeaders.Accept.Clear();
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        AsyncRetryPolicy<ProcessedProduct[]> retryPolicy = Policy<ProcessedProduct[]>
+            .Handle<HttpRequestException>()
+            .WaitAndRetryAsync(Constants.MaxHttpRequestRetries, times => TimeSpan.FromMilliseconds(times * 100));
+        
+        
+        var policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () =>
+            await httpClient.GetFromJsonAsync<ProcessedProduct[]>("Home/Products"));
+
+        if (policyResult.Outcome == OutcomeType.Successful)
+        {
+            _products = policyResult.Result;
+        }
+    }
+
+    private void OnActionFailure()
+    {
+        StateHasChanged();
+    }
+
+    private Task OnBtnBuyClick(int productProductId)
+    {
+        return Task.CompletedTask;
+    }
+
+}
 
 <style>
     .control-container {
@@ -63,5 +165,14 @@ Showcasing pictures taken around the world ...
         padding: 0.3em 1em;
         text-align: center;
         width: 100%;
+    }
+    
+    #product-grid {
+        width: 100%;
+    }
+    
+    .e-card-image {
+            height: 150px;
+            width: 150px;
     }
 </style>
