@@ -4,6 +4,16 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Syncfusion.Blazor.Buttons
 @using Syncfusion.Blazor.SplitButtons
+@using Syncfusion.Blazor.Data
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Grids
+@using Blazor.Shared.Entities.DataTransferObjects
+@using Blazor.Presentation.Client.Services
+@using Blazored.SessionStorage
+@using Syncfusion.Blazor.Popups
+@using System.Text
+@using System.Globalization
+@using EditMode = Syncfusion.Blazor.Grids.EditMode
 @inject NavigationManager NavigationManager
 @inject SignOutSessionStateManager SignOutManager
 @attribute [Authorize]
@@ -48,29 +58,23 @@
                             </Authorized>
                         </AuthorizeView>
                         <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right"></DropDownMenuItem>
-                        <DropDownMenuItem Text="Claims" IconCss="e-icons e-insert-right" Url="/Claims"></DropDownMenuItem>
+                        @*<DropDownMenuItem Text="Claims" IconCss="e-icons e-insert-right" Url="/Claims"></DropDownMenuItem>*@
                     </DropDownMenuItems>
                 </SfDropDownButton>
             </Authorized>
         </AuthorizeView>
 
         <AppBarSpacer></AppBarSpacer>
-        @*<div style="width:400px" class="ralign">
-            <span class="e-input-group e-control-wrapper e-inherit">
-                <input type="text" class="e-searchinput e-input" placeholder="Search" />
-                <span class="e-icons e-search e-input-group-icon"></span>
-            </span>
-        </div>
-        <AppBarSpacer></AppBarSpacer>*@
 
         <AuthorizeView>
             <Authorized>
-                @*<SfButton CssClass="e-inherit" @onclick="BeginSignOut" IconCss="e-icons e-user" Content="@String.Join(' ', "Hello,", @context.User.Identity?.Name!, "   Log out")"><LoginDisplay></LoginDisplay></SfButton>*@
+                <SfButton CssClass="e-inherit" @onclick="OnCartBtnClick" Content="Cart">></SfButton>
                 <SfButton CssClass="e-inherit" @onclick="BeginSignOut" IconCss="e-icons e-user" Content="Logout"><LoginDisplay></LoginDisplay></SfButton>
             </Authorized>
             <NotAuthorized>
+                <SfButton CssClass="e-inherit" @onclick="OnCartBtnClick" Content="Cart">></SfButton>
                 <SfButton CssClass="e-inherit" @onclick="BeginLogin" IconCss="e-icons e-user" Content="Login"><LoginDisplay></LoginDisplay></SfButton>
-                <SfButton CssClass="e-inherit" @onclick="BeginSignin" IconCss="e-icons e-user" Content="Signin">></SfButton>
+                <SfButton CssClass="e-inherit" @onclick="BeginSignin" IconCss="e-icons e-user" Content="Signin"></SfButton>
             </NotAuthorized>
         </AuthorizeView>
     </SfAppBar>
@@ -80,40 +84,123 @@
 <div class="page">
     <main>
         <article class="content px-4 text-center">
-            @Body
+            <SfDialog  @ref="_dialogObj" @bind-Visible="@_visibility" Target="#target" Width="80%" Height="80%" 
+                       ID="basket-dialog" CssClass="position-absolute top-50 start-50 translate-middle" ZIndex="1000" 
+                       CloseOnEscape="true">
+                <DialogTemplates>
+                    <Header>
+                        <span>@_header</span>
+                    </Header>
+                    <Content>
+                       <SfGrid ID="basket-grid" TValue="ProcessedProduct" DataSource="@ShoppingCart.Items.Values" AllowPaging="true" AllowSorting="true"
+                               AllowFiltering="true" AllowGrouping="true" AllowReordering="true" ShowColumnMenu="true"
+                               EnableHover="false" Height="90%" Toolbar="@ToolbarItems">
+                           <GridPageSettings PageSize="10"></GridPageSettings>
+                           <GridEditSettings AllowDeleting="true"  Mode="EditMode.Batch"></GridEditSettings>
+                           <GridEvents TValue="ProcessedProduct" OnBatchDelete="OnBatchDeleteHandler"></GridEvents>
+                           <GridAggregates>
+                               <GridAggregate>
+                                   <GridAggregateColumns>
+                                       <GridAggregateColumn Field=@nameof(ProcessedProduct.ProductPrice) Type="AggregateType.Custom">
+                                           <FooterTemplate>
+                                               @{
+                                                    <p>@GetWeightedAggregate()</p>
+                                               }
+                                           </FooterTemplate>
+                                       </GridAggregateColumn>
+                                   </GridAggregateColumns>
+                               </GridAggregate>
+                           </GridAggregates>
+                           <GridColumns>
+                               <GridColumn Field=@nameof(ProcessedProduct.ProductName) HeaderText="Name" Type="ColumnType.String" TextAlign="TextAlign.Center" ></GridColumn>
+                               <GridColumn Field=@nameof(ProcessedProduct.ProductQuantity) HeaderText="Quantity" Format="### ### ### Ks" Type="ColumnType.Number" TextAlign="TextAlign.Right" Width="180px"></GridColumn>
+                               <GridColumn Field=@nameof(ProcessedProduct.ProductPrice) HeaderText="Price" Format="### ### ###.00 CZK" Type="ColumnType.Number" TextAlign="TextAlign.Right" Width="180px"></GridColumn>
+                           </GridColumns>
+                       </SfGrid>
+                    </Content>
+                    <FooterTemplate>
+                        <SfButton Content="Back" CssClass="e-flat" OnClick="@DlgButtonClick"></SfButton>
+                        <SfButton Content="Buy"  CssClass="e-flat" OnClick="@DlgButtonClick"></SfButton>
+                    </FooterTemplate>
+                </DialogTemplates>
+            </SfDialog>
+            
+            <CascadingValue Value="this">
+                @Body
+            </CascadingValue>
         </article>
     </main>
 </div>
 
 @code{
-    private void OnNavBtnClick() => NavigationManager.NavigateTo("#");
+    private readonly string _header = "Basket";
+    private SfDialog _dialogObj;
+    private SfButton _buyBtnObj;
+    private ProcessedProduct[] _products;
+    private bool _visibility;
+    private List<string> ToolbarItems = new(){ "Delete" };
 
-    private void OnHomeBtnClick() => NavigationManager.NavigateTo("#");
+    public ShoppingCart ShoppingCart { get; set; }
+    
+    public double TotalCartValue { get; set; }
 
+    [Inject]
+    public LocalStorageService LocalStorageService { get; set; }
+
+    [Inject]
+    public ISessionStorageService SessionStorageService { get; set; }
+
+    protected override async Task OnInitializedAsync() => ShoppingCart = await LocalStorageService.GetAsync<ShoppingCart>(nameof(Blazor.Shared.Entities.DataTransferObjects.ShoppingCart)) ?? new ShoppingCart();
+
+    private string GetWeightedAggregate()
+    {
+    // Here, you can calculate custom aggregate operations and return the result.
+        return ShoppingCart.Items.Values.Select(item => item.ProductPrice * item.ProductQuantity).AsQueryable().Sum().ToString("### ### ##0.00 CZK", CultureInfo.InvariantCulture);
+    }
+    
     private async Task BeginSignOut(MouseEventArgs args)
     {
         await SignOutManager.SetSignOutState();
         NavigationManager.NavigateTo("authentication/logout");
     }
 
+    private void OnHomeBtnClick() => NavigationManager.NavigateTo("#");
+
     private void BeginLogin()
     {
         NavigationManager.NavigateTo("authentication/login");
     }
-    
+
     private void BeginSignin()
     {
         NavigationManager.NavigateTo("account/register");
     }
+    
+    
+    private async Task DlgButtonClick(object arg)
+    {
+        await this._dialogObj.HideAsync();
+    }
+
+    private async Task OnCartBtnClick(MouseEventArgs arg)
+    {
+        await this._dialogObj.ShowAsync();
+    }
+
+    private async Task OnBatchDeleteHandler(BeforeBatchDeleteArgs<ProcessedProduct> arg)
+    {
+        if (arg is not null)
+        {
+            ShoppingCart.Items.Remove(arg.RowData.ProductId);
+            await SessionStorageService.SetItemAsync(nameof(ShoppingCart),  ShoppingCart);
+        }
+    }
+
 }
 
 
 <style>
     .appbar-control-container .e-btn.e-inherit {
         margin: 0 3px;
-    }
-
-    .ralign {
-        margin-right: 15px;
     }
 </style>

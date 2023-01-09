@@ -23,13 +23,13 @@ public sealed partial class HomeController : ControllerBase
 
         return Ok();
     }
-    
+
     [HttpGet("Products", Name = nameof(GetAllPricedProductsAsync))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ResponseCache(CacheProfileName = "120SecondsDuration")]
     public async Task<IActionResult> GetAllPricedProductsAsync(
-        [FromServices] SqlContext sqlContext, 
+        [FromServices] SqlContext sqlContext,
         [FromServices] IWebHostEnvironment webHost)
     {
         var products = await (from p in sqlContext.Products
@@ -46,11 +46,12 @@ public sealed partial class HomeController : ControllerBase
                 i.UnsafeName,
                 Src = String.Empty
             }).ToArrayAsync(); // Skip() and Take() for paging
-        
+
         var basePath = webHost.WebRootPath;
         IList<ProcessedProduct> processedProducts = new List<ProcessedProduct>();
         for (var index = 0; index < products.Length; index++)
         {
+            var src = String.Empty;
             try
             {
                 var path = Path.Combine(basePath, "images", "carousel", products[index].SafeName);
@@ -65,45 +66,20 @@ public sealed partial class HomeController : ControllerBase
                     {
                         var strBuilder = new StringBuilder();
                         strBuilder.Append("data:").Append(contentType).Append(";base64,").Append(payload);
-                        processedProducts.Add(new ProcessedProduct(
-                            products[index].Id, 
-                            products[index].Name, 
-                            products[index].Price,
-                            products[index].Alt,
-                            products[index].Caption, 
-                            strBuilder.ToString()));
+                        src = strBuilder.ToString();
                     }
-                    else
-                    {
-                        processedProducts.Add(new ProcessedProduct(
-                            products[index].Id, 
-                            products[index].Name, 
-                            products[index].Price,
-                            products[index].Alt,
-                            products[index].Caption, 
-                            String.Empty));
-                    }
-                }
-                else
-                {
-                    processedProducts.Add(new ProcessedProduct(
-                        products[index].Id, 
-                        products[index].Name, 
-                        products[index].Price,
-                        products[index].Alt,
-                        products[index].Caption, 
-                        String.Empty));
                 }
             }
-            catch (Exception)
+            finally
             {
                 processedProducts.Add(new ProcessedProduct(
-                    products[index].Id, 
-                    products[index].Name, 
+                    products[index].Id,
+                    products[index].Name,
                     products[index].Price,
                     products[index].Alt,
-                    products[index].Caption, 
-                    String.Empty));
+                    products[index].Caption,
+                    src,
+                    0));
             }
         }
         

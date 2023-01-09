@@ -1,6 +1,7 @@
 using Blazor.Presentation.Client;
 using Blazor.Presentation.Client.Services;
 using Blazor.Shared.Entities.Identity;
+using Blazored.SessionStorage;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -12,7 +13,8 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) })
+    .AddBlazoredSessionStorage();
 
 builder.Services.AddHttpClient("Default", client => client.BaseAddress = new Uri("https://localhost:11001/api/"))
     .AddHttpMessageHandler(handlerConfig =>
@@ -42,6 +44,7 @@ builder.Services.AddOidcAuthentication(options =>
 builder.Services.AddSingleton<CarouselItemService>();
 builder.Services.AddSingleton<ImageService>();
 builder.Services.AddSingleton<AccountService>();
+builder.Services.AddScoped<LocalStorageService>();
 builder.Services.AddSyncfusionBlazor();
 
 await builder.Build().RunAsync();

@@ -2,14 +2,16 @@
 @page "/Home"
 @page "/Index"
 @using System.Net.Http.Headers
+@using System.Text.Json
+@using Blazor.Presentation.Client.Services
+@using Syncfusion.Blazor.Popups
 @using Blazor.Shared.Entities.DataTransferObjects
 @using Blazor.Shared.Entities.Constants
+@using Blazored.SessionStorage
 @using Polly.Retry
 @using Polly
-@using Syncfusion.Blazor
 @using Syncfusion.Blazor.Buttons
 @using Syncfusion.Blazor.Grids
-@using Syncfusion.Blazor.Cards
 
 <PageTitle>Index</PageTitle>
 
@@ -81,7 +83,7 @@ Showcasing pictures taken around the world ...
                             }
                         </Template>
                     </GridColumn>
-                    <GridColumn Field=@nameof(ProcessedProduct.ProductPrice) HeaderText="Price" Format="### ### ###.00 CZK" Type="ColumnType.Number" TextAlign="TextAlign.Center" Width="180px"></GridColumn>
+                    <GridColumn Field=@nameof(ProcessedProduct.ProductPrice) HeaderText="Price" Format="### ### ##0.00 CZK" Type="ColumnType.Number" TextAlign="TextAlign.Center" Width="180px"></GridColumn>
                     <GridColumn HeaderText="Cart" TextAlign="TextAlign.Center" Width="90">
                             <Template>
                                  @{
@@ -106,16 +108,25 @@ Showcasing pictures taken around the world ...
 @*<LoginDisplay></LoginDisplay>*@
 
 @code {
+    private ProcessedProduct[] _products;
+
     [Inject]
     IHttpClientFactory HttpClientFactory { get; set; }
 
-    private ProcessedProduct[] _products;
+    [Inject]
+    public ISessionStorageService SessionStorageService { get; set; }
+    
+    [CascadingParameter]
+    public MainLayout Layout { get; set; }
 
-    protected override Task OnInitializedAsync() => GetProductsAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        await GetProductsAsync();
+    }
 
     private async Task GetProductsAsync()
     {
-        var httpClient = HttpClientFactory.CreateClient("Default");
+        var httpClient = HttpClientFactory.CreateClient("Anonymous");
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         AsyncRetryPolicy<ProcessedProduct[]> retryPolicy = Policy<ProcessedProduct[]>
@@ -137,11 +148,20 @@ Showcasing pictures taken around the world ...
         StateHasChanged();
     }
 
-    private Task OnBtnBuyClick(int productProductId)
+    private async Task OnBtnBuyClick(int productId)
     {
-        return Task.CompletedTask;
-    }
+        var product = _products.SingleOrDefault(p => p.ProductId == productId);
+        if (product is null)
+        {
+            return;
+        }
+        
+        
+        Layout.ShoppingCart.AddCartItem(product, product.ProductQuantity + 1);
+        await SessionStorageService.SetItemAsync(nameof(ShoppingCart),  Layout.ShoppingCart);
 
+        Layout.TotalCartValue = Layout.ShoppingCart.TotalCost();
+    }
 }
 
 <style>
