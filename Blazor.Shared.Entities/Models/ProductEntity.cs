@@ -8,9 +8,11 @@ public sealed class ProductEntity
 {
     [Column("pk_product"), Key] 
     public int Id { get; set; }
-    
-    [Column("product_name"), Required(ErrorMessage = "Product name is a required field")]
-    [MaxLength(100, ErrorMessage = "Maximum length for the product name is {1} characters"), DataType(DataType.Text, ErrorMessage = "Product name must be text value type")]
+
+    [Column("product_name")]
+    [Required(ErrorMessage = "Product name is a required field")]
+    [MaxLength(100, ErrorMessage = "Maximum length for the product name is {1} characters")]
+    [DataType(DataType.Text, ErrorMessage = "Product name must be text value type")]
     public string Name { get; set; }
     
     [Column("product_price"), Required(ErrorMessage = "Product price is a required field")]

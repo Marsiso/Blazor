@@ -35,33 +35,25 @@
             </Authorized>
         </AuthorizeView>
         
-        <AuthorizeView>
+        <AuthorizeView Policy="@Policies.FromFrance">
             <Authorized>
                 <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Carousel">
                     <DropDownMenuItems>
-                        <AuthorizeView Policy="@Policies.FromFrance" Context="_">
-                            <Authorized>
-                                <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/ManageCarouselItems"></DropDownMenuItem>
-                            </Authorized>
-                        </AuthorizeView>
-                        <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right" Url="/ManageCarouselItems/Create"></DropDownMenuItem>
+                        <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/Manage/CarouselItem"></DropDownMenuItem>
+                        <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right" Url="/Manage/CarouselItem/Create"></DropDownMenuItem>
                         <DropDownMenuItem Text="Claims" IconCss="e-icons e-insert-right" Url="/Claims"></DropDownMenuItem>
                     </DropDownMenuItems>
                 </SfDropDownButton>
             </Authorized>
         </AuthorizeView>
 
-        <AuthorizeView>
+        <AuthorizeView Policy="@Policies.FromFrance">
             <Authorized>
                 <SfDropDownButton CssClass="e-inherit" IconCss="e-icons e-line-normal" Content="Products">
                     <DropDownMenuItems>
-                        <AuthorizeView Policy="@Policies.FromCzechRepublic" Roles="@Roles.Administrator" Context="_">
-                            <Authorized>
-                                <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/FetchData"></DropDownMenuItem>
-                            </Authorized>
-                        </AuthorizeView>
                         <DropDownMenuItem Text="Create" IconCss="e-icons e-insert-right"></DropDownMenuItem>
-                        @*<DropDownMenuItem Text="Claims" IconCss="e-icons e-insert-right" Url="/Claims"></DropDownMenuItem>*@
+                        <DropDownMenuItem Text="Claims" IconCss="e-icons e-insert-right" Url="/Claims"></DropDownMenuItem>
+                        <DropDownMenuItem Text="Manage" IconCss="e-icons e-field-settings" Url="/Management/Product"></DropDownMenuItem>
                     </DropDownMenuItems>
                 </SfDropDownButton>
             </Authorized>

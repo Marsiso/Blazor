@@ -1,1 +1,249 @@
 ﻿@page "/Management/Product"
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Inputs
+@using System.Net.Http.Headers
+@using Blazor.Shared.Entities.Identity
+@using Blazor.Shared.Entities.Constants
+@using Polly
+@using EditMode = Syncfusion.Blazor.Grids.EditMode
+@using System.ComponentModel.DataAnnotations
+@using FailureEventArgs = Syncfusion.Blazor.Grids.FailureEventArgs
+@attribute [Authorize(Policy = Policies.FromFrance)]
+
+<PageTitle>Product Management</PageTitle>
+<h1></h1>
+
+@if (Products is null)
+{
+    <p><strong>Page is loading ...</strong></p>
+}
+else
+{
+    <h1 class="fw-bold">Product Managment Table</h1>
+    <div class="row">
+        <div class="col">
+            <SfGrid DataSource="Products" TValue="ProductModelDto" @ref="_sfProductManagementGridObj" AllowPaging="true"
+                    AllowSorting="true" AllowFiltering="true" AllowGrouping="true" AllowReordering="true"
+                    ShowColumnMenu="true" AllowSelection="true" EnableHover="true" AllowTextWrap="true"
+                    Toolbar="@_toolbarItems" RowHeight="110">
+                <GridPageSettings PageSize="10"></GridPageSettings>
+                <GridEvents TValue="ProductModelDto" OnActionComplete="OnActionCompleteHandler" OnActionFailure="OnActionFailureHandler" OnCellSave="OnCellSaveHandler"></GridEvents>
+                <GridEditSettings AllowDeleting="true" AllowEditing="true" AllowAdding="true" Mode="EditMode.Dialog"
+                                  ShowDeleteConfirmDialog="true">
+                    <Validator>
+                        <DataAnnotationsValidator></DataAnnotationsValidator>
+                    </Validator>
+                    <Template>
+                        @{
+                            @if (context is ProductModelDto product)
+                            {
+                                <div>
+                                    <div class="form-row mt-4">
+                                        <p><strong>Product Name</strong></p>
+                                        <SfTextBox ShowClearButton="true" @bind-Value="product.ProductName"></SfTextBox>
+                                        <ValidationMessage For="() => product.ProductName"/>
+                                    </div>
+
+                                    <div class="form-row mt-4">
+                                        <p><strong>Product Price</strong></p>
+                                        <SfNumericTextBox @bind-Value="product.ProductPrice"></SfNumericTextBox>
+                                        @*<SfNumericTextBox @bind-Value="((ProductModelDto)context).ProductPrice" Enabled="@((Order.OrderID == null) ? true : false)"></SfNumericTextBox>*@
+                                        <ValidationMessage For="() => product.ProductPrice"/>
+                                    </div>
+
+                                    <div class="form-row mt-4">
+                                        <p><strong>Image Alternative Text</strong></p>
+                                        <SfTextBox ShowClearButton="true" @bind-Value="product.ImageAlt"> </SfTextBox>
+                                        <ValidationMessage For="() => product.ImageAlt"/>
+                                    </div>
+
+                                    <div class="form-row mt-4">
+                                        <p><strong>Image Caption</strong></p>
+                                        <SfTextBox HtmlAttributes="@_htmlAttribute" ShowClearButton="true" Multiline="true" @bind-Value="product.ImageCaption"> </SfTextBox>
+                                        <ValidationMessage For="() => product.ImageCaption"/>
+                                    </div>
+                                    
+                                    <div class="form-row mt-4">
+                                        <p><strong>Image</strong></p>
+                                        <figure class="img-container">
+                                            @if (String.IsNullOrEmpty(product.ImageSource) is false)
+                                            {
+                                                <img src="@product.ImageSource" alt="@product.ImageAlt" style="height: calc(15vw / 1.78 - 1px);"/>
+                                            }
+                                            else
+                                            {
+                                                <img src="images/image-placeholder.jpg" alt="@product.ImageAlt" style="height: calc(15vw / 1.78 - 1px);"/>
+                                            }
+                                        </figure>
+                                    </div>
+                                    
+                                    <div class="row mt-4">
+                                        <p><strong>Image Upload</strong></p>
+                                        <div class="input-group">
+                                            <label for="image-file-input" class="form-label"></label>
+                                            <InputFile class="form-control" id="image-file-input" type="file" OnChange="@((arg) => OnInputFileChange(product, arg))"/>
+                                        </div>
+                                        <ValidationMessage For="() => product.ImageBytes"/>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </Template>
+                </GridEditSettings>
+                <GridColumns>
+                    <GridColumn Field="@nameof(ProductModelDto.ProductIdentifier)" AutoFit="true" HeaderText="ID" TextAlign="TextAlign.Left" IsPrimaryKey="true"></GridColumn>
+                    <GridColumn HeaderText="Image" AutoFit="true">
+                        <Template>
+                            @{
+                                if (context is ProductModelDto product)
+                                {
+                                    <figure class="img-container">
+                                        @if (String.IsNullOrEmpty(product.ImageSource) is false)
+                                        {
+                                            <img src="@product.ImageSource" alt="@product.ImageAlt" style="height: calc(10vw / 1.78 - 1px);  margin-right: 10px;"/>
+                                        }
+                                        else
+                                        {
+                                            <img src="images/image-placeholder.jpg" alt="@product.ImageAlt" style="height: calc(10vw / 1.78 - 1px); margin-right: 10px;"/>
+                                        }
+                                    </figure>
+                                }
+                            }
+                        </Template>
+                    </GridColumn>
+                    <GridColumn Field="@nameof(ProductModelDto.ImageAlt)" AutoFit="true" HeaderText="Image Caption" TextAlign="TextAlign.Left"></GridColumn>
+                    <GridColumn Field="@nameof(ProductModelDto.ImageCaption)"EditType="EditType.DefaultEdit" HeaderText="Image Alternative Text" TextAlign="TextAlign.Left"></GridColumn>
+                    <GridColumn Field="@nameof(ProductModelDto.ProductName)" EditType="EditType.DefaultEdit" HeaderText="Name" AutoFit="true" TextAlign="TextAlign.Left"></GridColumn>
+                    <GridColumn Field="@nameof(ProductModelDto.ProductPrice)" EditType="EditType.NumericEdit" HeaderText="Price" TextAlign="TextAlign.Left" AutoFit="true" Format="### ### ##0.00 CZK" Type="ColumnType.Number"></GridColumn>
+                </GridColumns>
+            </SfGrid>
+        </div>
+    </div>
+    
+    @errors
+}
+
+@code{
+
+    // ReSharper disable once ClassNeverInstantiated.Global
+    public sealed class ProductModelDto
+    {
+        public int ProductIdentifier { get; set; }
+        
+        [Required(ErrorMessage = "Product name is a required field")]
+        [MaxLength(100, ErrorMessage = "Maximum length for the product name is {1} characters")]
+        [DataType(DataType.Text, ErrorMessage = "Product name must be text value type")]
+        public string ProductName { get; set; }
+        
+        [Required(ErrorMessage = "Product price is a required field")]
+        [Range(0, 1_000_000, ErrorMessage = "Product price must be ranging from {1} to {2}.")]
+        public double ProductPrice { get; set; }
+        
+        [Required(ErrorMessage = "Image alternative name is a required field")]
+        [MaxLength(100, ErrorMessage = "Maximum length for the image alternative name is {1} characters")]
+        [DataType(DataType.Text, ErrorMessage = "Image alternative name must be text value type")]
+        public string ImageAlt { get; set; }
+        
+        [MaxLength(600, ErrorMessage = "Maximum length for the image caption is {1} characters")]
+        [DataType(DataType.Text, ErrorMessage = "Image caption must be text value type")]
+        public string ImageCaption { get; set; }
+        
+        public string ImageSource { get; set; }
+
+        [Required(ErrorMessage = "Image file is a required field")]
+        [MinLength((int)Constants.MinimalImageSize, ErrorMessage = "Minimal image size is {1} Bytes")]
+        [MaxLength((int)Constants.MaximalImageSize, ErrorMessage = "Maximal image size is {1} Bytes")]
+        public byte[] ImageBytes { get; set; }
+    }
+
+    private SfGrid<ProductModelDto> _sfProductManagementGridObj;
+    private readonly List<string> _toolbarItems = new(){ "Cancel", "Delete", "Edit", "Update", "Add" };
+    private readonly Dictionary<string, object> _htmlAttribute = new Dictionary<string, object>() 
+    { 
+        { "rows", "5" } 
+    };
+
+    private string errors;
+
+    public List<ProductModelDto> Products { get; set; }
+
+
+    [Inject]
+    public IHttpClientFactory HttpClientFactory { get; set; }
+
+    protected override Task OnInitializedAsync() => LoadDataAsync();
+
+    private async Task LoadDataAsync()
+    {
+        var httpClient = HttpClientFactory.CreateClient("Default");
+        httpClient.DefaultRequestHeaders.Accept.Clear();
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        var retryPolicy = Policy<List<ProductModelDto>>
+            .Handle<HttpRequestException>()
+            .WaitAndRetryAsync(Constants.MaxHttpRequestRetries, times => TimeSpan.FromMilliseconds(times * 100));
+
+        var policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () =>
+            await httpClient.GetFromJsonAsync<List<ProductModelDto>>("ProductManagement"));
+
+        Products = new List<ProductModelDto>();
+        if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.Any())
+        {
+            Products.AddRange(policyResult.Result);
+        }
+    }
+
+    private void OnActionFailure()
+    {
+    }
+
+    private async Task OnInputFileChange(ProductModelDto productModel, InputFileChangeEventArgs arg)
+    {
+        if (productModel is null || arg is null) return;
+        if ((arg.File.Size is >= Constants.MaximalImageSize or <= Constants.MinimalImageSize) is false)
+        {
+            productModel.ImageBytes = new byte[arg.File.Size];
+            _ = await arg.File.OpenReadStream(arg.File.Size).ReadAsync(productModel.ImageBytes);
+
+            productModel.ImageSource = $"data:{arg.File.ContentType};base64,{Convert.ToBase64String(productModel.ImageBytes)}";
+        }
+        else
+        {
+            productModel.ImageSource = String.Empty;
+        }
+    }
+
+    private void OnActionFailureHandler(FailureEventArgs arg)
+    {
+    }
+
+    private Task OnCellSaveHandler(CellSaveArgs<ProductModelDto> arg)
+    {
+        errors = "Row deleted";
+        return Task.CompletedTask;
+    }
+
+    private Task OnActionCompleteHandler(ActionEventArgs<ProductModelDto> arg)
+    {
+        if (arg is null) return Task.CompletedTask;
+        
+        switch (arg.Action.ToLower())
+        {
+            case "add":
+            {
+                break;
+            }
+            case "edit":
+            {
+                break;
+            }
+            case "delete":
+            {
+                
+                break;
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+
+}

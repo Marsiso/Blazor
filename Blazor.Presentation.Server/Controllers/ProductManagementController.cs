@@ -1,39 +1,15 @@
 ﻿using System.Dynamic;
-using System.Linq.Dynamic.Core;
-using System.Net;
 using AutoMapper;
-using Blazor.Presentation.Server.Filters;
 using Blazor.Presentation.Server.Utility;
 using Blazor.Shared.Abstractions;
-using Blazor.Shared.Entities.Constants;
 using Blazor.Shared.Entities.DataTransferObjects;
 using Blazor.Shared.Entities.DbContexts;
 using Blazor.Shared.Entities.Models;
 using Blazor.Shared.Implementations.Utility;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using RazorLight.Extensions;
-using ILogger = Serilog.ILogger;
 
 namespace Blazor.Presentation.Server.Controllers;
-
-static class AsyncExtensions
-{
-    public static async Task<IEnumerable<ExpandoObject>> AddImageSrcAsync<TValue>(this IEnumerable<TValue> source, Func<TValue, Task<(bool, ExpandoObject)>> func)
-    {
-        IList<ExpandoObject> objs = new List<ExpandoObject>();
-        foreach (var element in source)
-        {
-            var (result, obj) = await func(element);
-            if (result)
-            {
-                objs.Add(obj);
-            }
-        }
-        
-        return objs;
-    }
-}
 
 [ApiVersion("1.0")]
 [ApiExplorerSettings(GroupName = "v1")]
