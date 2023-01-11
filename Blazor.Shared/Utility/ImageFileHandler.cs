@@ -9,18 +9,6 @@ namespace Blazor.Shared.Implementations.Utility;
 
 public static class ImageFileHandler
 {
-    public static async Task UploadNewImage(IFormFile file, string path)
-    {
-        try
-        {
-            await using FileStream fs = new(path, FileMode.Create);
-            await file.CopyToAsync(fs);
-        }
-        finally
-        {
-        }
-    }
-    
     public static async Task<string> DownloadImage(string path)
     {
         try
@@ -41,7 +29,7 @@ public static class ImageFileHandler
                 }
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return string.Empty;
         }

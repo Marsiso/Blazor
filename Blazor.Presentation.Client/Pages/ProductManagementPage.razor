@@ -12,6 +12,7 @@
 @using FailureEventArgs = Syncfusion.Blazor.Grids.FailureEventArgs
 @using ChangeEventArgs = Microsoft.AspNetCore.Components.ChangeEventArgs
 @using System.Globalization
+@using System.Dynamic
 @inject IHttpClientFactory HttpClientFactory
 @attribute [Authorize(Policy = Policies.FromFrance)]
 
@@ -101,9 +102,9 @@ else
                          <SfButton type="submit" Content="Cancel" @onclick="OnCancelBtnClick" CssClass="e-flat float-start"></SfButton>
                      </div>
                      <div class="float-end">
-                         <SfButton type="submit" Content="Delete Product" CssClass="e-flat float-end" Disabled="@_actionsBlocked"></SfButton>
+                         <SfButton type="submit" Content="Delete Product" @onclick="OnDeleteBtnClick" CssClass="e-flat float-end" Disabled="@_actionsBlocked"></SfButton>
                          <SfButton type="submit" Content="Update Product" @onclick="OnUpdateBtnClick" CssClass="e-flat float-end" Disabled="@_actionsBlocked"></SfButton>
-                         <SfButton type="submit" Content="Create Product" CssClass="e-flat float-end" Disabled="@_actionsBlocked"></SfButton>
+                         <SfButton type="submit" Content="Create Product" @onclick="OnCreateBtnClick" CssClass="e-flat float-end" Disabled="@_actionsBlocked"></SfButton>
                      </div>
                  </div>
              </FooterTemplate>
@@ -293,6 +294,90 @@ else
                 ImageSource = ImageBase64,
                 ProductPrice = ProductToUpdate.ProductPrice
             };
+
+            ImageBytes = null;
+            ProductToUpdate = null;
+            this.ImageFileInfo = null;
+            ImageBase64 = null;
+
+            await _sfProductManagementGridObj.Refresh();
+        }
+    }
+
+    private async Task OnCreateBtnClick()
+    {
+        var httpClient = HttpClientFactory.CreateClient("Default");
+        var retryPolicy = Policy<HttpResponseMessage>
+            .Handle<HttpRequestException>()
+            .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
+        
+        
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        var byteArrayContent = new ByteArrayContent(ImageBytes);
+        byteArrayContent.Headers.ContentType = MediaTypeHeaderValue.Parse(ImageFileInfo.MimeContentType);
+                    
+        var policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () => await httpClient.PostAsync(
+            $"ProductManagement", new MultipartFormDataContent
+            {
+                {
+                    new StringContent(ProductToUpdate.ProductName), 
+                    "\"productName\""
+                },
+                {
+                    new StringContent(ProductToUpdate.ImageAlt), 
+                    "\"imageAlt\""
+                },
+                {
+                    new StringContent(ProductToUpdate.ImageCaption), 
+                    "\"imageCaption\""
+                },
+                {
+                    new StringContent(ProductToUpdate.ProductPrice.ToString("G", CultureInfo.InvariantCulture)), 
+                    "\"productPrice\""
+                },
+                {
+                    byteArrayContent, 
+                    "\"imageFile\"",
+                    $"\"{ImageFileInfo.Name}\""
+                }
+            }));
+
+        if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode)
+        {
+            var productModelDto = await policyResult.Result.Content.ReadFromJsonAsync<ProductModelDto>();
+            productModelDto.ProductName = ProductToUpdate.ProductName;
+            productModelDto.ImageAlt = ProductToUpdate.ImageAlt;
+            productModelDto.ImageCaption = ProductToUpdate.ImageCaption;
+            productModelDto.ImageSource = ImageBase64;
+            productModelDto.ProductPrice = ProductToUpdate.ProductPrice;
+
+            Products.Add(productModelDto);
+            await _sfDialogObj.HideAsync();
+            
+            ImageBytes = null;
+            ProductToUpdate = null;
+            this.ImageFileInfo = null;
+            ImageBase64 = null;
+        }
+    }
+
+    private async Task OnDeleteBtnClick()
+    {
+        var httpClient = HttpClientFactory.CreateClient("Default");
+        var retryPolicy = Policy<HttpResponseMessage>
+            .Handle<HttpRequestException>()
+            .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
+
+        var policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () => await httpClient.DeleteAsync(
+            $"ProductManagement/{SelectedProduct.ProductIdentifier}"));
+
+
+        if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode)
+        {
+            await _sfDialogObj.HideAsync();
+
+            Products.Remove(SelectedProduct);
+            await _sfDialogObj.HideAsync();
             
             ImageBytes = null;
             ProductToUpdate = null;

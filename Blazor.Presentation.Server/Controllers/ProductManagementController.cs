@@ -1,22 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Dynamic;
 using System.Net;
-using AutoMapper;
 using Blazor.Presentation.Server.Utility;
-using Blazor.Shared.Abstractions;
 using Blazor.Shared.Entities.DataTransferObjects;
 using Blazor.Shared.Entities.DbContexts;
 using Blazor.Shared.Entities.Models;
 using Blazor.Shared.Implementations.Utility;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Serilog.Core;
 using Constants = Blazor.Shared.Entities.Constants.Constants;
 using ILogger = Serilog.ILogger;
-using ValidationContext = AutoMapper.ValidationContext;
 
 namespace Blazor.Presentation.Server.Controllers;
 
@@ -53,7 +48,7 @@ public sealed class ProductManagementController : ControllerBase
         var array = new ExpandoObject[len];
         Parallel.For(0, len, (index) =>
         {
-            var imageTask = ImageDownloadService.DownloadImage(Path.Combine(webHost.WebRootPath, "images", "carousel", productModels[index].FileSafeName));
+            var imageTask = ImageFileHandler.DownloadImage(Path.Combine(webHost.WebRootPath, "images", "carousel", productModels[index].FileSafeName));
             dynamic product = new ExpandoObject();
             
             product.ProductIdentifier = productModels[index].ProductIdentifier;
@@ -124,8 +119,8 @@ public sealed class ProductManagementController : ControllerBase
     public async Task<IActionResult> CreateAsync(
         [FromServices] IWebHostEnvironment webHost,
         [FromServices] SqlContext sqlContext,
-        [FromServices] Logger logger,
-        [FromBody] ProductModelForUpdateDto product)
+        [FromServices] ILogger logger,
+        [FromForm] ProductModelForUpdateDto product)
     {
         // Validate message content
         var context = new System.ComponentModel.DataAnnotations.ValidationContext(product);
