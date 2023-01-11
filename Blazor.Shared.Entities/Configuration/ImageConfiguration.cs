@@ -14,36 +14,36 @@ public class ImageConfiguration : IEntityTypeConfiguration<ImageEntity>
             {
                 Id = 1,
                 CarouselItemId = 1,
-                SafeName = "RI043b4.jpg",
-                UnsafeName = "img-iphone-14-pro-128gb-purple",
+                SafeName = "img-iphone-14-pro-128gb-purple.jpg",
+                UnsafeName = "img-iphone-14-pro-128gb-purple.jpg",
             },
             new()
             {
                 Id = 2,
                 CarouselItemId = 2,
-                SafeName = "ImgW.jpg",
-                UnsafeName = "img-garmin-tactix-7-pro-solar-sapphire-ballistics",
+                SafeName = "img-garmin-tactix-7-pro-solar-sapphire-ballistics.jpg",
+                UnsafeName = "img-garmin-tactix-7-pro-solar-sapphire-ballistics.jpg",
             },
             new()
             {
                 Id = 3,
                 CarouselItemId = 3,
-                SafeName = "IAsDgW.jpg",
-                UnsafeName = "img-jura-e6-platinum",
+                SafeName = "img-jura-e6-platinum.jpg",
+                UnsafeName = "img-jura-e6-platinum.jpg",
             },
             new()
             {
                 Id = 4,
                 CarouselItemId = 4,
-                SafeName = "asdfgsd.jpg",
-                UnsafeName = "img-msi-geforce-rtx-3080-ventus",
+                SafeName = "img-msi-geforce-rtx-3080-ventus.jpg",
+                UnsafeName = "img-msi-geforce-rtx-3080-ventus.jpg",
             },
             new()
             {
                 Id = 5,
                 CarouselItemId = 5,
-                SafeName = "dfSDsd.jpg",
-                UnsafeName = "img-amd-ryzen-5-5600x",
+                SafeName = "img-amd-ryzen-5-5600x.jpg",
+                UnsafeName = "img-amd-ryzen-5-5600x.jpg",
             }
         });
     }
