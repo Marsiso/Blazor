@@ -2,7 +2,7 @@
 
 public static class FileExtensionHelper
 {
-    private static IReadOnlyDictionary<string, string> Extensions { get; } = new Dictionary<string, string>()
+    public static IReadOnlyDictionary<string, string> Extensions { get; } = new Dictionary<string, string>()
     {
         { "image/jpeg", ".jpg"},
         { "image/gif", ".gif"},
