@@ -18,6 +18,7 @@
     <PackageReference Include="Syncfusion.Blazor.Cards" Version="20.3.0.59" />
     <PackageReference Include="Syncfusion.Blazor.Inputs" Version="20.3.0.59" />
     <PackageReference Include="Syncfusion.Blazor.Navigations" Version="20.3.0.59" />
+    <PackageReference Include="Syncfusion.Blazor.Notifications" Version="20.3.0.59" />
     <PackageReference Include="Syncfusion.Blazor.RichTextEditor" Version="20.3.0.59" />
     <PackageReference Include="Syncfusion.Blazor.SplitButtons" Version="20.3.0.59" />
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="20.3.0.59" />

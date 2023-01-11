@@ -3,6 +3,7 @@
 @using Syncfusion.Blazor.Inputs
 @using Syncfusion.Blazor.Buttons
 @using Syncfusion.Blazor.Popups
+@using Syncfusion.Blazor.Notifications
 @using System.Net.Http.Headers
 @using Blazor.Shared.Entities.Identity
 @using Blazor.Shared.Entities.Constants
@@ -10,9 +11,7 @@
 @using EditMode = Syncfusion.Blazor.Grids.EditMode
 @using Blazor.Shared.Entities.DataTransferObjects
 @using FailureEventArgs = Syncfusion.Blazor.Grids.FailureEventArgs
-@using ChangeEventArgs = Microsoft.AspNetCore.Components.ChangeEventArgs
 @using System.Globalization
-@using System.Dynamic
 @inject IHttpClientFactory HttpClientFactory
 @attribute [Authorize(Policy = Policies.FromFrance)]
 
@@ -25,92 +24,101 @@
 }
 else
 {
-     <SfDialog  @ref="_sfDialogObj" @bind-Visible="@_dialogVisibility" Target="#target" Width="80%" Height="80%" 
-                       ID="manage-product-dialog" CssClass="position-absolute top-50 start-50 translate-middle" ZIndex="900" 
-                       CloseOnEscape="true">
-         <DialogEvents OnOpen="@(() => { _actionsBlocked = true; })"></DialogEvents>
-         <DialogTemplates>
-             <Header>
-                 <span>@_header</span>
-             </Header>
-             <Content>
-                 @if (SelectedProduct is not null)
-                 {
-                     <EditForm Model="ProductToUpdate" OnValidSubmit="@(() => { _actionsBlocked = false; })">
-                         <DataAnnotationsValidator></DataAnnotationsValidator>
-                         <ValidationSummary></ValidationSummary>
-                         <div>
-                             <div class="form-row">
-                                 <SfTextBox ShowClearButton="true" @bind-Value="ProductToUpdate.ProductName" Placeholder="Product Name" FloatLabelType='@FloatLabelType.Auto' OnChange="@(() => { _actionsBlocked = true; })"></SfTextBox>
-                                 <ValidationMessage For="() => ProductToUpdate.ProductName"/>
-                             </div>
-
-                             <div class="form-row mt-2">
-                                 <SfNumericTextBox @bind-Value="ProductToUpdate.ProductPrice" Placeholder="Product Price" FloatLabelType='@FloatLabelType.Auto' ShowClearButton="true" OnChange="@(() => { _actionsBlocked = true; })"></SfNumericTextBox>
-                                 <ValidationMessage For="() => ProductToUpdate.ProductPrice"/>
-                             </div>
-
-                             <div class="form-row mt-2">
-                                 <SfTextBox ShowClearButton="true" @bind-Value="ProductToUpdate.ImageAlt" Placeholder="Image Alternative Text" FloatLabelType='@FloatLabelType.Auto' OnChange="@(() => { _actionsBlocked = true; })"></SfTextBox>
-                                 <ValidationMessage For="() => ProductToUpdate.ImageAlt"/>
-                             </div>
-
-                             <div class="form-row mt-2">
-                                 <SfTextBox HtmlAttributes="@_htmlAttribute" Multiline="true" @bind-Value="ProductToUpdate.ImageCaption" Placeholder="Image Caption" FloatLabelType='@FloatLabelType.Auto' OnChange="@(() => { _actionsBlocked = true; })" ShowClearButton="true"></SfTextBox>
-                                 <ValidationMessage For="() => ProductToUpdate.ImageCaption"/>
-                             </div>
-
-                             <div class="form-row mt-2">
-                                 <p style="font-size: 12px; color: rgb(52,58,64); font-weight: bold;">Image</p>
-                                 <figure class="img-container">
-                                     @if (String.IsNullOrEmpty(ImageBase64) is false)
-                                     {
-                                         <img src="@ImageBase64" alt="@ProductToUpdate.ImageAlt" style="height: calc(15vw / 1.78 - 1px);"/>
-                                     }
-                                     else
-                                     {
-                                         <img src="images/image-placeholder.jpg" alt="@ProductToUpdate.ImageAlt" style="height: calc(15vw / 1.78 - 1px);"/>
-                                     }
-                                 </figure>
-                             </div>
-
-                             <div class="form-row mt-2">
-                                 <div class="input-group">
-                                     <SfUploader ID="image-file-input"
-                                                 AllowedExtensions=".jpeg, .jpg, .webp, .png"
-                                                 MinFileSize="Constants.MinimalImageSize"
-                                                 MaxFileSize="Constants.MaximalImageSize"
-                                                 AllowMultiple="false"
-                                                 SequentialUpload="true">
-                                         <UploaderEvents ValueChange="OnFileUploadHandler"></UploaderEvents>
-                                     </SfUploader>
-                                 </div>
-                             </div>
-
-                             <div class="form-row mt-2 mb-1">
-                                 <div class="input-group">
-                                     <SfButton CssClass="e-flat w-100" type="submit" Content="Validate"></SfButton>
-                                 </div>
-                             </div>
-                         </div>
-                     </EditForm>
-                 }
-             </Content>
-             <FooterTemplate>
-                 <div class="form-row">
-                     <div class="float-start">
-                         <SfButton type="submit" Content="Cancel" @onclick="OnCancelBtnClick" CssClass="e-flat float-start"></SfButton>
-                     </div>
-                     <div class="float-end">
-                         <SfButton type="submit" Content="Delete Product" @onclick="OnDeleteBtnClick" CssClass="e-flat float-end" Disabled="@( !_actionsBlocked )"></SfButton>
-                         <SfButton type="submit" Content="Update Product" @onclick="OnUpdateBtnClick" CssClass="e-flat float-end" Disabled="@_actionsBlocked"></SfButton>
-                         <SfButton type="submit" Content="Create Product" @onclick="OnCreateBtnClick" CssClass="e-flat float-end" Disabled="@( _actionsBlocked || ImageBytes is null)"></SfButton>
-                     </div>
-                 </div>
-             </FooterTemplate>
-         </DialogTemplates>
-    </SfDialog>
+    <SfToast ID="toast_default" @ref="_sfToastObj" Title="Product Management" Timeout="5000" 
+             Icon="e-meeting" ShowProgressBar="true" ShowCloseButton="true" ProgressDirection="ProgressDirection.LTR" 
+             NewestOnTop="true">
+        <ToastPosition X="Center" Y="Top"></ToastPosition>
+    </SfToast>
     
+    <SfDialog  @ref="_sfDialogObj" @bind-Visible="@_dialogVisibility" Target="#target" Width="80%" Height="80%" 
+               ID="manage-product-dialog" CssClass="position-absolute top-50 start-50 translate-middle" ZIndex="900" 
+               CloseOnEscape="true">
+        <DialogEvents OnOpen="@(() => { this._actionsBlocked = true; this._hasChanged = false; })"
+                      OnClose="@(() => { this.ImageBase64 = string.Empty; this.ImageFileInfo = null; this.ImageBytes = null; })">
+        </DialogEvents>
+        <DialogTemplates>
+            <Header>
+                <span>@Header</span>
+            </Header>
+            <Content>
+                @if (SelectedProduct is not null)
+                {
+                    <EditForm Model="ProductToUpdate" OnValidSubmit="@(() => { _actionsBlocked = false; })">
+                        <DataAnnotationsValidator></DataAnnotationsValidator>
+                        <ValidationSummary></ValidationSummary>
+                        <div>
+                            <div class="form-row">
+                                <SfTextBox ShowClearButton="true" @bind-Value="ProductToUpdate.ProductName" Placeholder="Product Name" FloatLabelType='@FloatLabelType.Auto' OnChange="@(() => { _actionsBlocked = true; _hasChanged = true; })"></SfTextBox>
+                                <ValidationMessage For="() => ProductToUpdate.ProductName"/>
+                            </div>
+
+                            <div class="form-row mt-2">
+                                <SfNumericTextBox @bind-Value="ProductToUpdate.ProductPrice" Placeholder="Product Price" FloatLabelType='@FloatLabelType.Auto' ShowClearButton="true" OnChange="@(() => { _actionsBlocked = true; _hasChanged = true; })"></SfNumericTextBox>
+                                <ValidationMessage For="() => ProductToUpdate.ProductPrice"/>
+                            </div>
+
+                            <div class="form-row mt-2">
+                                <SfTextBox ShowClearButton="true" @bind-Value="ProductToUpdate.ImageAlt" Placeholder="Image Alternative Text" FloatLabelType='@FloatLabelType.Auto' OnChange="@(() => { _actionsBlocked = true; _hasChanged = true; })"></SfTextBox>
+                                <ValidationMessage For="() => ProductToUpdate.ImageAlt"/>
+                            </div>
+
+                            <div class="form-row mt-2">
+                                <SfTextBox HtmlAttributes="@_htmlAttribute" Multiline="true" @bind-Value="ProductToUpdate.ImageCaption" Placeholder="Image Caption" FloatLabelType='@FloatLabelType.Auto' OnChange="@(() => { _actionsBlocked = true; _hasChanged = true; })" ShowClearButton="true"></SfTextBox>
+                                <ValidationMessage For="() => ProductToUpdate.ImageCaption"/>
+                            </div>
+
+                            <div class="form-row mt-2">
+                                <p style="font-size: 12px; color: rgb(52,58,64); font-weight: bold;">Image</p>
+                                <figure class="img-container">
+                                    @if (String.IsNullOrEmpty(ImageBase64) is false)
+                                    {
+                                        <img src="@ImageBase64" alt="@ProductToUpdate.ImageAlt" style="height: calc(15vw / 1.78 - 1px);"/>
+                                    }
+                                    else
+                                    {
+                                        <img src="images/image-placeholder.jpg" alt="@ProductToUpdate.ImageAlt" style="height: calc(15vw / 1.78 - 1px);"/>
+                                    }
+                                </figure>
+                            </div>
+
+                            <div class="form-row mt-2">
+                                <div class="input-group">
+                                    <SfUploader ID="image-file-input"
+                                                AllowedExtensions=".jpeg, .jpg, .webp, .png"
+                                                MinFileSize="Constants.MinimalImageSize"
+                                                MaxFileSize="Constants.MaximalImageSize"
+                                                AllowMultiple="false"
+                                                SequentialUpload="true">
+                                        <UploaderEvents OnRemove="@(() => { ImageBytes = null; ImageFileInfo = null; ImageBase64 = SelectedProduct.ImageSource; })" 
+                                                        ValueChange="OnFileUploadHandler"></UploaderEvents>
+                                    </SfUploader>
+                                </div>
+                            </div>
+
+                            <div class="form-row mt-2 mb-1">
+                                <div class="input-group">
+                                    <SfButton CssClass="e-flat w-100" type="submit" Content="Validate"></SfButton>
+                                </div>
+                            </div>
+                        </div>
+                    </EditForm>
+                }
+            </Content>
+            <FooterTemplate>
+                <div class="form-row">
+                    <div class="float-start">
+                        <SfButton type="submit" Content="Cancel" @onclick="OnCancelBtnClick" CssClass="e-flat float-start"></SfButton>
+                    </div>
+                    <div class="float-end">
+                        <SfButton type="submit" Content="Delete Product" @onclick="OnDeleteBtnClick" CssClass="e-flat float-end" Disabled="@( !_actionsBlocked || _hasChanged )"></SfButton>
+                        <SfButton type="submit" Content="Update Product" @onclick="OnUpdateBtnClick" CssClass="e-flat float-end" Disabled="@_actionsBlocked"></SfButton>
+                        <SfButton type="submit" Content="Create Product" @onclick="OnCreateBtnClick" CssClass="e-flat float-end" Disabled="@( _actionsBlocked || ImageBytes is null)"></SfButton>
+                    </div>
+                </div>
+            </FooterTemplate>
+        </DialogTemplates>
+    </SfDialog>
+
     <h1 class="fw-bold">Product Managment Table</h1>
     <div class="row">
         <div class="col">
@@ -157,12 +165,13 @@ else
 
 
 @code{
-    private SfGrid<ProductModelDto> _sfProductManagementGridObj;
-    private readonly string _header = "Edit";
     private SfDialog _sfDialogObj;
-    private SfButton _updateBtnObj;
+    private SfGrid<ProductModelDto> _sfProductManagementGridObj;
+    private SfToast _sfToastObj;
+    private const string Header = "Edit";
     private bool _dialogVisibility;
     private bool _actionsBlocked;
+    private bool _hasChanged;
     private readonly Dictionary<string, object> _htmlAttribute = new() { { "rows", "5" } };
     private ProductModelDto SelectedProduct { get; set; }
     
@@ -172,6 +181,7 @@ else
     private string ImageBase64 { get; set; }
     private ProductModelForUpdateDto ProductToUpdate { get; set; }
 
+    // List of products
     public List<ProductModelDto> Products { get; set; }
     
     protected override Task OnInitializedAsync() => LoadDataAsync();
@@ -199,15 +209,14 @@ else
     {
     }
 
-    private async Task OnActionCompleteHandler(ActionEventArgs<ProductModelDto> arg)
+    private void OnActionCompleteHandler(ActionEventArgs<ProductModelDto> arg)
     {
     }
 
-    private async Task OnRecordDoubleClick(RecordDoubleClickEventArgs<ProductModelDto> args)
+    private void OnRecordDoubleClick(RecordDoubleClickEventArgs<ProductModelDto> args)
     {
         SelectedProduct = args.RowData;
         ImageBase64 = SelectedProduct.ImageSource;
-        ImageBytes = null;
         ProductToUpdate = new ProductModelForUpdateDto
         {
             ProductName = SelectedProduct.ProductName,
@@ -219,89 +228,32 @@ else
         _dialogVisibility = true;
     }
 
-    private async Task OnFileUploadHandler(UploadChangeEventArgs arg)
+    private void OnFileUploadHandler(UploadChangeEventArgs arg)
     {
         _actionsBlocked = true;
         var file = arg.Files.SingleOrDefault();
-        if (file is not null)
+        if (file is null)
         {
-            ImageFileInfo = file.FileInfo;
-            ImageBytes = new byte[Convert.ToInt32(file.FileInfo.Size)];
-            if (file.Stream.TryGetBuffer(out var buffer))
-            {
-                buffer.CopyTo(ImageBytes);
-                ImageBase64 = $"data:{ImageFileInfo.MimeContentType};base64,{Convert.ToBase64String(ImageBytes)}";
-            }
+            return;
         }
+        
+        ImageFileInfo = file.FileInfo;
+        ImageBytes = new byte[Convert.ToInt32(file.FileInfo.Size)];
+        if (!file.Stream.TryGetBuffer(out var buffer))
+        {
+            return;
+        }
+        
+        buffer.CopyTo(ImageBytes);
+        ImageBase64 = $"data:{ImageFileInfo.MimeContentType};base64,{Convert.ToBase64String(ImageBytes)}";
     }
 
     private async Task OnCancelBtnClick()
     {
         ImageBytes = null;
         ImageFileInfo = null;
-        ImageBase64 = String.Empty;
+        ImageBase64 = string.Empty;
         await _sfDialogObj.HideAsync();
-    }
-
-    private async Task OnUpdateBtnClick()
-    {
-        var httpClient = HttpClientFactory.CreateClient("Default");
-        var retryPolicy = Policy<HttpResponseMessage>
-            .Handle<HttpRequestException>()
-            .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
-        
-        
-        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        var byteArrayContent = new ByteArrayContent(ImageBytes);
-        byteArrayContent.Headers.ContentType = MediaTypeHeaderValue.Parse(ImageFileInfo.MimeContentType);
-                    
-        var policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () => await httpClient.PutAsync(
-            $"ProductManagement/{SelectedProduct.ProductIdentifier}", new MultipartFormDataContent
-            {
-                {
-                    new StringContent(ProductToUpdate.ProductName), 
-                    "\"productName\""
-                },
-                {
-                    new StringContent(ProductToUpdate.ImageAlt), 
-                    "\"imageAlt\""
-                },
-                {
-                    new StringContent(ProductToUpdate.ImageCaption), 
-                    "\"imageCaption\""
-                },
-                {
-                    new StringContent(ProductToUpdate.ProductPrice.ToString("G", CultureInfo.InvariantCulture)), 
-                    "\"productPrice\""
-                },
-                {
-                    byteArrayContent, 
-                    "\"imageFile\"",
-                    $"\"{ImageFileInfo.Name}\""
-                }
-            }));
-
-        if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode)
-        {
-            await _sfDialogObj.HideAsync();
-
-            SelectedProduct = new ProductModelDto
-            {
-                ProductIdentifier = SelectedProduct.ProductIdentifier,
-                ProductName = ProductToUpdate.ProductName,
-                ImageAlt = ProductToUpdate.ImageAlt,
-                ImageCaption = ProductToUpdate.ImageCaption,
-                ImageSource = ImageBase64,
-                ProductPrice = ProductToUpdate.ProductPrice
-            };
-
-            ImageBytes = null;
-            ProductToUpdate = null;
-            this.ImageFileInfo = null;
-            ImageBase64 = null;
-
-            await _sfProductManagementGridObj.Refresh();
-        }
     }
 
     private async Task OnCreateBtnClick()
@@ -354,12 +306,108 @@ else
             Products.Add(productModelDto);
             await _sfDialogObj.HideAsync();
             
-            ImageBytes = null;
+            _sfToastObj.Content = "Product successfully created!";
+            _sfToastObj.Show();
+            
             ProductToUpdate = null;
-            this.ImageFileInfo = null;
-            ImageBase64 = null;
             await _sfProductManagementGridObj.Refresh();
+            
+            return;
         }
+        
+        _sfToastObj.Content = "Error occured!";
+        _sfToastObj.Show();
+    }
+
+    private async Task OnUpdateBtnClick()
+    {
+        var httpClient = HttpClientFactory.CreateClient("Default");
+        var retryPolicy = Policy<HttpResponseMessage>
+            .Handle<HttpRequestException>()
+            .WaitAndRetryAsync(Constants.MaxHttpRequestRetries,times => TimeSpan.FromMilliseconds(times * 100));
+
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        PolicyResult<HttpResponseMessage> policyResult;
+        if (ImageBytes is not null)
+        {
+            var byteArrayContent = new ByteArrayContent(ImageBytes);
+            byteArrayContent.Headers.ContentType = MediaTypeHeaderValue.Parse(ImageFileInfo.MimeContentType);
+            policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () => await httpClient.PutAsync(
+                $"ProductManagement/{SelectedProduct.ProductIdentifier}", new MultipartFormDataContent
+                {
+                    {
+                        new StringContent(ProductToUpdate.ProductName), 
+                        "\"productName\""
+                    },
+                    {
+                        new StringContent(ProductToUpdate.ImageAlt), 
+                        "\"imageAlt\""
+                    },
+                    {
+                        new StringContent(ProductToUpdate.ImageCaption), 
+                        "\"imageCaption\""
+                    },
+                    {
+                        new StringContent(ProductToUpdate.ProductPrice.ToString("G", CultureInfo.InvariantCulture)), 
+                        "\"productPrice\""
+                    },
+                    {
+                        byteArrayContent, 
+                        "\"imageFile\"",
+                        $"\"{ImageFileInfo.Name}\""
+                    }
+                }));   
+        }
+        else
+        {
+            policyResult = await retryPolicy.ExecuteAndCaptureAsync(async () => await httpClient.PutAsync(
+                $"ProductManagement/{SelectedProduct.ProductIdentifier}", new MultipartFormDataContent
+                {
+                    {
+                        new StringContent(ProductToUpdate.ProductName), 
+                        "\"productName\""
+                    },
+                    {
+                        new StringContent(ProductToUpdate.ImageAlt), 
+                        "\"imageAlt\""
+                    },
+                    {
+                        new StringContent(ProductToUpdate.ImageCaption), 
+                        "\"imageCaption\""
+                    },
+                    {
+                        new StringContent(ProductToUpdate.ProductPrice.ToString("G", CultureInfo.InvariantCulture)), 
+                        "\"productPrice\""
+                    }
+                }));   
+        }
+
+        if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode)
+        {
+            await _sfDialogObj.HideAsync();
+            
+            _sfToastObj.Content = "Product successfully updated!";
+            _sfToastObj.Show();
+
+            SelectedProduct = new ProductModelDto
+            {
+                ProductIdentifier = SelectedProduct.ProductIdentifier,
+                ProductName = ProductToUpdate.ProductName,
+                ImageAlt = ProductToUpdate.ImageAlt,
+                ImageCaption = ProductToUpdate.ImageCaption,
+                ImageSource = ImageBase64,
+                ProductPrice = ProductToUpdate.ProductPrice
+            };
+
+            ProductToUpdate = null;
+            await _sfProductManagementGridObj.Refresh();
+
+            return;
+        }
+        
+        _sfToastObj.Content = "Error occured!";
+        _sfToastObj.Show();
     }
 
     private async Task OnDeleteBtnClick()
@@ -378,12 +426,16 @@ else
             Products.Remove(SelectedProduct);
             await _sfDialogObj.HideAsync();
             
-            ImageBytes = null;
-            ProductToUpdate = null;
-            this.ImageFileInfo = null;
-            ImageBase64 = null;
-            await _sfProductManagementGridObj.Refresh();
-        }
-    }
+            _sfToastObj.Content = "Product successfully deleted!";
+            _sfToastObj.Show();
 
+            ProductToUpdate = null;
+            await _sfProductManagementGridObj.Refresh();
+            
+            return;
+        }
+        
+        _sfToastObj.Content = "Error occured!";
+        _sfToastObj.Show();
+    }
 }
