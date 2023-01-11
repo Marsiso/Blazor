@@ -96,7 +96,6 @@ public class OrderController : ControllerBase
         _mapper.Map(order, orderEntity);
         await _repository.SaveAsync();
         
-        _logger.Information("Order has been successfully updated");
         return NoContent();
     }
 
@@ -110,7 +109,6 @@ public class OrderController : ControllerBase
         _repository.Order.DeleteOrder(orderEntity);
         await _repository.SaveAsync();
         
-        _logger.Information("Order has been successfully deleted");
         return NoContent();
     }
 }

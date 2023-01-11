@@ -4,35 +4,27 @@ namespace Blazor.Shared.Entities.Validation;
 
 public sealed class StringContainsAttribute : ValidationAttribute
 {
-    private IList<string> SearchTerms { get; set; }
+    public IList<string> Values { get; set; }
 
-    public StringContainsAttribute(string searchTerms)
+    public StringContainsAttribute(string values)
     {
-        if (String.IsNullOrEmpty(searchTerms))
+        if (string.IsNullOrEmpty(values))
         {
-            SearchTerms = new List<string>();
+            throw new Exception("Values object can not be an empty or null string");
         }
-        else
-        {
-            SearchTerms = searchTerms.Split(' ');
-        }
+
+        Values = values.Split(' ');
     }
     
     protected override ValidationResult IsValid(object value, ValidationContext validationContext)
     {
-        var payload = value as string;
-        if (String.IsNullOrEmpty(payload))
-        {
-            return new ValidationResult("Payload can't be null or empty string");
-        }
-
-        foreach (var searchTerm in SearchTerms)
-        {
-            if (!payload.Contains(searchTerm))
+        if (value is not string givenString) return new ValidationResult("Given object type must be a string");
+        if (string.IsNullOrEmpty(givenString)) return new ValidationResult("Given string object can not be null or empty string");
+        foreach (var val in Values)
+            if (givenString.Contains(val) is false)
             {
-                return new ValidationResult($"Payload must contain {searchTerm} attribute at least once");
+                return new ValidationResult(string.Format("Given object must contain string value {0} at least once", val));
             }
-        }
 
         return ValidationResult.Success;
     }

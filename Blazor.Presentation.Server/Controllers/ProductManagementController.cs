@@ -21,11 +21,21 @@ namespace Blazor.Presentation.Server.Controllers;
 [ApiController]
 public sealed class ProductManagementController : ControllerBase
 {
+    [HttpOptions]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult GetOptions()
+    {
+        Response.Headers.Add("Allow", "GET, OPTIONS, POST, DELETE, PUT");
+
+        return Ok();
+    }
 
     [HttpGet(Name = "GetAllAsync")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    //[ResponseCache(CacheProfileName = "120SecondsDuration")]
+    [ResponseCache(CacheProfileName = "120SecondsDuration")]
     public async Task<IActionResult> GetAllAsync(
         [FromServices] IWebHostEnvironment webHost,
         [FromServices] SqlContext sqlContext)
@@ -68,8 +78,9 @@ public sealed class ProductManagementController : ControllerBase
     
     [HttpGet("{id}", Name = "GetAsync")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    //[ResponseCache(CacheProfileName = "120SecondsDuration")]
+    [ResponseCache(CacheProfileName = "120SecondsDuration")]
     public async Task<IActionResult> GetAsync(
         int id,
         [FromServices] IWebHostEnvironment webHost,
@@ -114,6 +125,7 @@ public sealed class ProductManagementController : ControllerBase
     //[ServiceFilter(typeof(ValidationFilter))]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateAsync(
@@ -198,6 +210,7 @@ public sealed class ProductManagementController : ControllerBase
     [HttpPut("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateAsync(
         int id,

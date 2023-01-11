@@ -16,6 +16,6 @@ public sealed class ResetPasswordForCreationDto
     [RegularExpression(@"^.*(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*\(\)_\-+=]).*$", ErrorMessage = "Password must meet requirements")]
     public string Password { get; set; }
     
-    [PasswordMatch(ComparisonProperty = nameof(Password), ErrorMessage = "Passwords doesn't match")]
+    [StringMatch(ComparisonProperty = nameof(Password), ErrorMessage = "Passwords doesn't match")]
     public string RepeatedPassword { get; set; }
 }
