@@ -102,9 +102,9 @@ else
                          <SfButton type="submit" Content="Cancel" @onclick="OnCancelBtnClick" CssClass="e-flat float-start"></SfButton>
                      </div>
                      <div class="float-end">
-                         <SfButton type="submit" Content="Delete Product" @onclick="OnDeleteBtnClick" CssClass="e-flat float-end" Disabled="@_actionsBlocked"></SfButton>
+                         <SfButton type="submit" Content="Delete Product" @onclick="OnDeleteBtnClick" CssClass="e-flat float-end" Disabled="@( !_actionsBlocked )"></SfButton>
                          <SfButton type="submit" Content="Update Product" @onclick="OnUpdateBtnClick" CssClass="e-flat float-end" Disabled="@_actionsBlocked"></SfButton>
-                         <SfButton type="submit" Content="Create Product" @onclick="OnCreateBtnClick" CssClass="e-flat float-end" Disabled="@_actionsBlocked"></SfButton>
+                         <SfButton type="submit" Content="Create Product" @onclick="OnCreateBtnClick" CssClass="e-flat float-end" Disabled="@( _actionsBlocked || ImageBytes is null)"></SfButton>
                      </div>
                  </div>
              </FooterTemplate>
@@ -162,7 +162,7 @@ else
     private SfDialog _sfDialogObj;
     private SfButton _updateBtnObj;
     private bool _dialogVisibility;
-    private bool _actionsBlocked = false;
+    private bool _actionsBlocked;
     private readonly Dictionary<string, object> _htmlAttribute = new() { { "rows", "5" } };
     private ProductModelDto SelectedProduct { get; set; }
     
@@ -358,6 +358,7 @@ else
             ProductToUpdate = null;
             this.ImageFileInfo = null;
             ImageBase64 = null;
+            await _sfProductManagementGridObj.Refresh();
         }
     }
 
@@ -374,8 +375,6 @@ else
 
         if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode)
         {
-            await _sfDialogObj.HideAsync();
-
             Products.Remove(SelectedProduct);
             await _sfDialogObj.HideAsync();
             
@@ -383,6 +382,7 @@ else
             ProductToUpdate = null;
             this.ImageFileInfo = null;
             ImageBase64 = null;
+            await _sfProductManagementGridObj.Refresh();
         }
     }
 

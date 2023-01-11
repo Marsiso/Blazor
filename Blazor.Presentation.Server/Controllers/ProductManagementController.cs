@@ -323,19 +323,18 @@ public sealed class ProductManagementController : ControllerBase
         [FromServices] SqlContext sqlContext,
         int id)
     {
-        var productModel = await (from p in sqlContext.Products
+        var queryResult = await (from p in sqlContext.Products
             join ci in sqlContext.CarouselItems on p.CarouselItemId equals ci.Id
             join i in sqlContext.Images on ci.Id equals i.CarouselItemId
             where p.Id == id
             select new
             {
-                ProductIdentifier = p.Id,
-                CarouselItemIdentifier = ci.Id,
-                ImageIdentifier = i.Id,
-                ImageSafeName = i.SafeName
+                ProductEntity = p,
+                CarouselItemEntity = ci,
+                ImageEntity = i
             }).SingleOrDefaultAsync();
-
-        if (productModel is null)
+        
+        if (queryResult.ProductEntity is null)
         {
             var msg = $"Product object with id: {id} does not exist in the database";
             logger.Information(msg);
@@ -343,40 +342,15 @@ public sealed class ProductManagementController : ControllerBase
             return NotFound(new { ErrorMessage = msg });
         }
 
-        await using var sc = new SqlConnection(sqlContext.Database.GetConnectionString());
-        await using var cmd = sc.CreateCommand();
-        await sc.OpenAsync();
-
-        cmd.CommandText = "DELETE FROM PRODUCTS WHERE ID == @PRODUCT_ID; DELETE FROM CAROUSELITEMS WHERE ID == @CAROUSEL_ITEM_ID; DELETE FROM IMAGES WHERE ID == @IMAGE_ID";
-        cmd.Parameters.AddWithValue("@PRODUCT_ID", productModel.ProductIdentifier);
-        cmd.Parameters.AddWithValue("@CAROUSEL_ITEM_ID", productModel.CarouselItemIdentifier);
-        cmd.Parameters.AddWithValue("@IMAGE_ID", productModel.ImageIdentifier);
-        var rowAffected = cmd.ExecuteNonQuery();
-        //await sc.CloseAsync();
-
-        if (rowAffected is 0)
+        sqlContext.Products.Remove(queryResult.ProductEntity);
+        var path = Path.Combine(webHost.WebRootPath, "images", "carousel", queryResult.ImageEntity.SafeName);
+        if (System.IO.File.Exists(path))
         {
-            logger.Error("Failed to delete resources from database. Resources: Product with ID: {ProductID}, Carousel Item with ID {CarouselItemID}, Image with ID: {ImageID}",
-                productModel.ProductIdentifier,
-                productModel.CarouselItemIdentifier,
-                productModel.ImageIdentifier);
-            
-            return StatusCode(StatusCodes.Status500InternalServerError, new { ErrorMessage = $"Failed to delete resources from database. Resources: Product with ID: {productModel.ProductIdentifier}, Carousel Item with ID {productModel.CarouselItemIdentifier}, Image with ID: {productModel.ImageIdentifier}"});
+            System.IO.File.Delete(path);
         }
 
-        if (string.IsNullOrEmpty(productModel.ImageSafeName))
-        {
-            return NoContent();
-        }
+        await sqlContext.SaveChangesAsync();
 
-        if (ImageFileHandler.TryDeleteImage(
-                Path.Combine(webHost.WebRootPath, "images", "carousel", productModel.ImageSafeName),
-                out var exceptionMessage))
-        {
-            return NoContent();
-        }
-
-        logger.Error(exceptionMessage);
-        return StatusCode(StatusCodes.Status500InternalServerError, new { ErrorMessage = exceptionMessage });
+        return NoContent();
     }
 }

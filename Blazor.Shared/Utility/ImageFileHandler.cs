@@ -36,23 +36,4 @@ public static class ImageFileHandler
 
         return string.Empty;
     }
-    
-    public static bool TryDeleteImage(string path, out string exception)
-    {
-        try
-        {
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
-        }
-        catch (Exception e)
-        {
-            exception = e.Message;
-            return false;
-        }
-
-        exception = string.Empty;
-        return true;
-    }
 }
