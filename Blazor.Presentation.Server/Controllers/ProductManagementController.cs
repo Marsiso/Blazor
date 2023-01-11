@@ -35,7 +35,7 @@ public sealed class ProductManagementController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [ResponseCache(CacheProfileName = "120SecondsDuration")]
+    //[ResponseCache(CacheProfileName = "120SecondsDuration")]
     public async Task<IActionResult> GetAllAsync(
         [FromServices] IWebHostEnvironment webHost,
         [FromServices] SqlContext sqlContext)
@@ -356,6 +356,8 @@ public sealed class ProductManagementController : ControllerBase
         }
 
         sqlContext.Products.Remove(queryResult.ProductEntity);
+        sqlContext.CarouselItems.Remove(queryResult.CarouselItemEntity);
+        sqlContext.Images.Remove(queryResult.ImageEntity);
         var path = Path.Combine(webHost.WebRootPath, "images", "carousel", queryResult.ImageEntity.SafeName);
         if (System.IO.File.Exists(path))
         {

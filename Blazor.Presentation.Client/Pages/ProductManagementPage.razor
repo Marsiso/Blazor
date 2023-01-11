@@ -124,8 +124,7 @@ else
         <div class="col">
             <SfGrid DataSource="Products" TValue="ProductModelDto" @ref="_sfProductManagementGridObj" AllowPaging="true"
                     AllowSorting="true" AllowFiltering="true" AllowGrouping="true" AllowReordering="true"
-                    ShowColumnMenu="true" AllowSelection="true" EnableHover="true" AllowTextWrap="true"
-                    Toolbar="@(new List<string>{ "Delete"  })" RowHeight="110">
+                    ShowColumnMenu="true" AllowSelection="true" EnableHover="true" AllowTextWrap="true" RowHeight="110">
                 <GridPageSettings PageSize="10"></GridPageSettings>
                 <GridEvents TValue="ProductModelDto" OnActionComplete="OnActionCompleteHandler" OnActionFailure="OnActionFailureHandler" 
                             OnRecordDoubleClick="args => OnRecordDoubleClick(args)"></GridEvents>
@@ -385,12 +384,7 @@ else
 
         if (policyResult.Outcome == OutcomeType.Successful && policyResult.Result.IsSuccessStatusCode)
         {
-            await _sfDialogObj.HideAsync();
-            
-            _sfToastObj.Content = "Product successfully updated!";
-            _sfToastObj.Show();
-
-            SelectedProduct = new ProductModelDto
+            var productModelDto = new ProductModelDto
             {
                 ProductIdentifier = SelectedProduct.ProductIdentifier,
                 ProductName = ProductToUpdate.ProductName,
@@ -399,6 +393,15 @@ else
                 ImageSource = ImageBase64,
                 ProductPrice = ProductToUpdate.ProductPrice
             };
+            
+            _sfDialogObj.Hide();
+            
+            _sfToastObj.Content = "Product successfully updated!";
+            _sfToastObj.Show();
+
+
+            var index = Products.IndexOf(SelectedProduct);
+            Products[index] = productModelDto;
 
             ProductToUpdate = null;
             await _sfProductManagementGridObj.Refresh();
